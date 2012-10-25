@@ -107,9 +107,7 @@ public class Planet : SelectableBody {
 		if(Game.SelectedObject == gameObject)
 		{
 			Vector3 torque = new Vector3(0, -delta.x, 0);
-			//rigidbody.AddRelativeTorque( torque, ForceMode.VelocityChange);
-			rigidbody.angularVelocity = torque;
-			
+			rigidbody.AddRelativeTorque( torque, ForceMode.VelocityChange);			
 		}
 	}
 	
