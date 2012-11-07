@@ -8,6 +8,9 @@ public class Planet : SelectableBody {
 	public PlanetData planetInfo;
 	private float lastClickTime;
 	
+	//Structures
+	List<Structure> builtStructures;
+		
 	void Awake()
 	{
 		planetInfo = ScriptableObject.CreateInstance<PlanetData>();
@@ -23,23 +26,58 @@ public class Planet : SelectableBody {
 	}
 	
 	void Start()
-	{
+	{		
 		//Create floating label
 		cameraMatchRotationWhenSelected = false;
 		Game.gui.labelPool.Label(gameObject,
 									new Vector3(0, gameObject.transform.lossyScale.magnitude + 10, 0), 
 									planetInfo.planetName);
+		builtStructures = new List<Structure>();
 	}
 	
-	// Update is called once per frame
-	void Update () 
-	{
-		//transform.RotateAround(Vector3.zero, new Vector3(0,1,0),Time.deltaTime*20);
-	}
 	
 	public override float GetSelectionRadius()
 	{
 		return renderer.bounds.extents.magnitude;
+	}
+	
+	/// <summary>
+	/// Refreshs the structuers from the gameObject's children on the next frame
+	/// </summary>
+	public IEnumerator RefreshStructuers()
+	{
+		yield return new WaitForSeconds(1); //wait till last minute for parenting process to finish
+		builtStructures = new List<Structure>();
+		foreach(Transform child in transform)
+		{
+			Structure structure = child.GetComponent<Structure>();
+			if(structure != null)
+				builtStructures.Add(structure);
+		}
+	}
+	
+	/// <summary>
+	/// Returns structures for which the given surface coordinates are within resource-sharing range
+	/// </summary>
+	public List<Structure> GetNeigboringStructures(Vector3 surfaceCoords)
+	{
+		List<Structure> neigboringStructures = new List<Structure>();
+		
+		Vector3 centerOfPlanet = gameObject.transform.position;
+		Vector3 centerToGivenCoords = centerOfPlanet - surfaceCoords;
+		float radius = (gameObject.collider as SphereCollider).radius * transform.localScale.magnitude;
+		float circumference = 2 * Mathf.PI * radius;
+		
+		foreach(Structure structure in builtStructures)
+		{
+			Vector3 centerToStructure = centerOfPlanet - structure.gameObject.transform.position;
+			float acceptenceAngle = structure.outputRange * 360 / circumference;
+			float angleToGivenCoords = Vector3.Angle(centerToStructure, centerToGivenCoords);
+			if(angleToGivenCoords <= acceptenceAngle)
+				neigboringStructures.Add(structure);
+		}
+		
+		return neigboringStructures;
 	}
 	
 	/// <summary>
@@ -60,7 +98,6 @@ public class Planet : SelectableBody {
 		
 		return true;
 	}
-	
 	/// <summary>
 	/// Signal to launch the given landable
 	/// </summary>

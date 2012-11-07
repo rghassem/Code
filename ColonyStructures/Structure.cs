@@ -6,7 +6,10 @@ using System.Collections.Generic;
 /// Base Class for planetary structures. Will be dragged onto planet are clickable
 /// </summary>
 public class Structure : MonoBehaviour {
-
+	
+	public static readonly float DEFAULT_OUTPUT_RANGE = 10;
+	
+	public float outputRange;
 	
 	public string structureName;
 	public ResourceType resourceType;
@@ -19,12 +22,23 @@ public class Structure : MonoBehaviour {
 	
 	// Use this for initialization
 	protected virtual void Start () {
-		//temporary:
-		transform.localScale /= 8;
+		
+		//maintain global scale
+		if(transform.parent != null)
+		{
+			Vector3 correctedScale = new Vector3(transform.localScale.x / transform.parent.localScale.x,
+												 transform.localScale.y / transform.parent.localScale.y,
+												 transform.localScale.z / transform.parent.localScale.z);
+			transform.localScale = correctedScale; 
+		}
+		
+		//Initialize
 		input = new  LocalResource[0];
 		output = new LocalResource();
 		output.type = LocalResourceType.Power;
 		output.quantity = 5;
+		
+		outputRange = DEFAULT_OUTPUT_RANGE;
 	}
 	
 	/// <summary>
@@ -32,7 +46,11 @@ public class Structure : MonoBehaviour {
 	/// </summary>
 	public bool checkRequirements(params LocalResource[] requirements)
 	{
-		return true;
+		//TODO: More robust reqs checking
+		if(requirements.Length == 0)
+			return false;
+		return requirements[0].type == LocalResourceType.Power &&
+			requirements[0].quantity >= 5;
 	}
 	
 	public LocalResource getOutput()
