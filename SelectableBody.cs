@@ -25,7 +25,7 @@ public class SelectableBody : MonoBehaviour {
 	{
 		if(Game.SelectedObject == gameObject)
 			return;
-		Game.SelectObject(gameObject, true, cameraMatchRotationWhenSelected);
+		Game.SelectObject(gameObject, true, cameraMatchRotationWhenSelected, true);
 	}
 	
 	public virtual IEnumerator DelayedSelfSelect(float delay)

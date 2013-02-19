@@ -24,6 +24,9 @@ public class StructurePopupPanel : MonoBehaviour {
 	
 	public void Hide()
 	{
+		if(structure != null)
+			structure.NotifyClickAway();
+
 		if(linkToSubject != null)
 			linkToSubject.active = false;
 		transform.position += new Vector3( Screen.width + 10000, 0, 0);
@@ -37,6 +40,7 @@ public class StructurePopupPanel : MonoBehaviour {
 	public void LoadStructure (Structure selectedStructure) {
 		
 		Hide();
+		structure = selectedStructure;
 		
 		//Fill fields based on structure data
 		nameField.text = selectedStructure.structureName;

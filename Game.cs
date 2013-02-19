@@ -42,13 +42,14 @@ public class Game : MonoBehaviour {
 			DeSelect();
 		}
 	}
+	#region selection
 	
 	public static void SelectObject(GameObject target, bool centerCamera)
 	{
-		SelectObject(target, centerCamera, true);
+		SelectObject(target, centerCamera, true, true);
 	}
 	
-	public static void SelectObject(GameObject target, bool centerCamera, bool cameraMatchRotation)
+	public static void SelectObject(GameObject target, bool centerCamera, bool cameraMatchRotation, bool doHighlight)
 	{
 		if(lockSelection)
 			return;
@@ -60,8 +61,11 @@ public class Game : MonoBehaviour {
 		
 		SelectedObject = target;
 		SelectedObject.SendMessage("OnPlayerSelect", SendMessageOptions.DontRequireReceiver);
-		highlight.attach(target);
-		highlight.show();
+		if(doHighlight)
+		{
+			highlight.attach(target);
+			highlight.show();
+		}
 	}
 	
 	public static void DeSelect()
@@ -76,6 +80,7 @@ public class Game : MonoBehaviour {
 		SelectedObject = null;
 	}
 	
+	#endregion
 	/// <summary>
 	/// Returns focus to the last selected planet.
 	/// </summary>

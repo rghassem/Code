@@ -9,19 +9,15 @@ public class BuildListItem : MonoBehaviour {
 	
 	UILabel label;
 	
-	GameObject marker;
+	Structure currentPlacingStructure;
 	bool isBeingDragged;
 	DragDropItem dragBehavior; // the NGUI script controlling the dragging
 	Planet currentPlanet;
-	Dictionary<GameObject, VectorLine> validityLines;
-	
-	bool destroyMarker; //Flag to destroy the marker object on the next update.
-	
+		
 	// Use this for initialization
 	void Awake () {
 		label = transform.Find("Label").GetComponent<UILabel>();
 		dragBehavior = GetComponent<DragDropItem>();
-		validityLines = new Dictionary<GameObject, VectorLine>();
 	}
 	
 	public void Initialize(string name, BuildingType type)
@@ -41,7 +37,8 @@ public class BuildListItem : MonoBehaviour {
 	{
 		currentPlanet = Game.gui.planetMenu.planet.GetComponent<Planet>();
 		isBeingDragged = true; 
-		marker = GameObject.Instantiate(dragBehavior.prefab) as GameObject;
+		GameObject marker = GameObject.Instantiate(dragBehavior.prefab) as GameObject;
+		currentPlacingStructure = marker.GetComponent<Structure>();
 		//We need to turn off the collider during dragging, otherwise it can intercept NGUI drop events
 		if(marker.collider != null)
 			marker.collider.enabled = false;
@@ -61,11 +58,11 @@ public class BuildListItem : MonoBehaviour {
 	void EndDragging()
 	{
 		isBeingDragged = false; 
-		if(marker != null)
+		if(currentPlacingStructure != null)
 		{
-			Destroy(marker);
+			Destroy(currentPlacingStructure.gameObject);
+			currentPlacingStructure.ClearDependencyInfo();
 		}
-		DeleteDependencyLines();
 	}
 	
 	void Update()
@@ -79,86 +76,17 @@ public class BuildListItem : MonoBehaviour {
 				Game.mainCamera.ACTION_CAMERA_DISTANCE * 2) //distance just needs to be a good size
 			  )
 			{
-				marker.transform.position = hit.point;
-				
-				//Check if placement here is legal
-				List<Structure> neighbors = currentPlanet.GetNeigboringStructures(hit.point);
-				Structure structure = dragBehavior.prefab.GetComponent<Structure>();
-				bool isValid = false;
-				ClearDependencyLines();
-				foreach(Structure neighbor in neighbors)
-				{
-					if(structure.checkRequirements(neighbor.getOutput()))
-					{
-						UpdateDependencyLine(hit.point, neighbor.gameObject);
-						isValid = true;
-					}
-					else
-						ClearDependencyLine(neighbor.gameObject);
-				}
-				if(isValid)
-					marker.renderer.material.color = Color.green;
-				else
-				{
-					marker.renderer.material.color = Color.red;
-				}
-				
+				currentPlacingStructure.transform.position = hit.point;
+				currentPlacingStructure.DrawDependencyInfo(currentPlanet);
 			}
 			else
 			{
-				marker.transform.position = Vector3.zero;
-				DeleteDependencyLines();
+				currentPlacingStructure.transform.position = Vector3.zero;
+				currentPlacingStructure.ClearDependencyInfo();
 			}
 		}
 			
 	}
-	
-	void UpdateDependencyLine(Vector3 itemPosition, GameObject dependencyPosition)
-	{
-		Vector2 markerScreenCoords = 
-			Game.mainCamera.camera.WorldToScreenPoint(itemPosition);
-		Vector2 structureScreenCoords = 
-			Game.mainCamera.camera.WorldToScreenPoint(dependencyPosition.transform.position);
-		if(validityLines.ContainsKey(dependencyPosition))
-		{
-			Vector2[] screenCoordinates = new Vector2[2] {markerScreenCoords, structureScreenCoords};
-			validityLines[dependencyPosition].points2 = screenCoordinates;
-			validityLines[dependencyPosition].active = true;
-			validityLines[dependencyPosition].Draw();
-		}
-		else
-		{
-			VectorLine line = VectorLine.SetLine(Color.green, markerScreenCoords, structureScreenCoords);
-			validityLines.Add(dependencyPosition, line);
-		}
-	}
-	
-	void ClearDependencyLine(GameObject dependency)
-	{
-		if(validityLines.ContainsKey(dependency))
-		{
-			validityLines[dependency].active = false;
-		}
-	}
-	
-	void ClearDependencyLines()
-	{
-		foreach(VectorLine line in validityLines.Values)
-		{
-			line.active = false;
-		}
-	}
-	
-	void DeleteDependencyLines()
-	{
-		foreach(GameObject key in validityLines.Keys)
-		{
-			VectorLine line = validityLines[key];
-			VectorLine.Destroy(ref line);
-		}
-		validityLines = new Dictionary<GameObject, VectorLine>();
-	}
-	
 	
 }
 

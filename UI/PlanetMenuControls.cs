@@ -64,7 +64,6 @@ public class PlanetMenuControls : MonoBehaviour
 		//Lock the game and camera on this planet
 		Game.lockSelection = true;
 		Game.mainCamera.SwitchViewAngle(CameraViewMode.Perspective);
-		currentPlanet.rigidbody.isKinematic = false; //so can be spun around using torque
 		planet = currentPlanet;
 	}
 	
@@ -80,7 +79,6 @@ public class PlanetMenuControls : MonoBehaviour
 		//Free the selection/camera
 		Game.lockSelection = false;
 		Game.mainCamera.SwitchViewAngle(CameraViewMode.Top);
-		planet.rigidbody.isKinematic = true;
 
 	}
 	
@@ -90,7 +88,7 @@ public class PlanetMenuControls : MonoBehaviour
 	/// <param name='structure'>
 	/// Structure.
 	/// </param>
-	public void showStructurePopup(Structure structure)
+	public void ShowStructurePopup(Structure structure)
 	{
 		structureInfoSection.LoadStructure(structure);
 	}

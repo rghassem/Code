@@ -2,11 +2,14 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-[RequireComponent(typeof(Rigidbody))]
 public class Planet : SelectableBody {
-
+		
 	public PlanetData planetInfo;
 	private float lastClickTime;
+	
+	const float MAX_SPIN_VELOCITY = 10;
+	const float SPIN_DRAG = 2f;
+	float spinVelocity;
 	
 	//Structures
 	List<Structure> builtStructures;
@@ -21,8 +24,6 @@ public class Planet : SelectableBody {
 		planetInfo.energy = "500";
 		
 		lastClickTime = 0;	
-		rigidbody.isKinematic = true;
-		rigidbody.centerOfMass = Vector3.zero;
 	}
 	
 	void Start()
@@ -140,12 +141,28 @@ public class Planet : SelectableBody {
 	
 	public void OnDrag(Vector2 delta)
 	{
-		Vector3 test = rigidbody.centerOfMass;
 		if(Game.SelectedObject == gameObject)
 		{
-			Vector3 torque = new Vector3(0, -delta.x, 0);
-			rigidbody.AddRelativeTorque( torque, ForceMode.VelocityChange);			
+			spinVelocity -= MAX_SPIN_VELOCITY * Time.deltaTime * Mathf.Sign(delta.x);
+			
+			//spinVelocity -= delta.x * Time.deltaTime;
+			//spinVelocity = Mathf.Sign(spinVelocity) *  Mathf.Min(Mathf.Abs(spinVelocity), MAX_SPIN_VELOCITY);
 		}
 	}
 	
+	void Update()
+	{
+		if(Game.SelectedObject == gameObject)
+		{
+			if(spinVelocity != 0)
+			{
+				gameObject.transform.RotateAroundLocal( Vector3.up, spinVelocity * Time.deltaTime);
+				//pull back toward 0
+				float newSpinVelocity = Mathf.Abs(spinVelocity) - SPIN_DRAG * Time.deltaTime;
+				if(newSpinVelocity < 0)
+					newSpinVelocity = 0;
+				spinVelocity = newSpinVelocity * Mathf.Sign(spinVelocity);
+			}
+		}
+	}
 }
