@@ -7,9 +7,14 @@ public class Planet : SelectableBody {
 	public PlanetData planetInfo;
 	private float lastClickTime;
 	
+	float territoryRadius = 50; //should be determined by colony size
+	SafeZone territory;
+
+	
 	const float MAX_SPIN_VELOCITY = 10;
 	const float SPIN_DRAG = 2f;
 	float spinVelocity;
+		
 	
 	//Structures
 	List<Structure> builtStructures;
@@ -34,6 +39,8 @@ public class Planet : SelectableBody {
 									new Vector3(0, gameObject.transform.lossyScale.magnitude + 10, 0), 
 									planetInfo.planetName);
 		builtStructures = new List<Structure>();
+		territory = SafeZone.Spawn(territoryRadius, gameObject);
+		territory.ShowRing();
 	}
 	
 	
@@ -127,6 +134,7 @@ public class Planet : SelectableBody {
 		}
 		return results;
 	}
+	
 	
 	public void OnPlayerSelect()
 	{

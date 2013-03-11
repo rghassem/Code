@@ -66,6 +66,7 @@ public class Spawner : MonoBehaviour {
 	
 	protected List<GameObject> spawnedObjects; //Contains references to every object spawned by this spawner.
 	protected int targetNumberOfObjects;
+	protected GameObject container;
 	
 	void Start()
 	{
@@ -94,6 +95,8 @@ public class Spawner : MonoBehaviour {
 	/// </summary>
 	public virtual void Go()
 	{
+		container = new GameObject(prefabsToSpawn[0].name + "s");
+		container.transform.position = Vector3.zero;
 		while(spawnedObjects.Count < targetNumberOfObjects)
 		{
 			Spawn();
@@ -114,9 +117,11 @@ public class Spawner : MonoBehaviour {
 		
 		Vector2 distance = Random.insideUnitCircle.normalized * Random.Range(minimumSpawnDistance, maximumSpawnDistance);
 		Vector3 position = transform.position + new Vector3(distance.x, 0, distance.y);
-				
+		
+		
 		GameObject spawnedObject = Instantiate(prefabsToSpawn[prefabNumber], position, Quaternion.identity) as GameObject;
 		spawnedObject.transform.localScale = Vector3.one * scale;
+		spawnedObject.transform.parent = container.transform;
 		
 		//Maybe give it some velocity
 		if(Random.value <= chanceMoving)
@@ -132,7 +137,6 @@ public class Spawner : MonoBehaviour {
 		}
 	
 		spawnedObjects.Add( spawnedObject );
-		
 	}
 	
 

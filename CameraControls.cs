@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
+[RequireComponent(typeof(CameraEffects))]
 public class CameraControls : MonoBehaviour {
 	
 	//Constants
@@ -15,6 +16,7 @@ public class CameraControls : MonoBehaviour {
 	public float distanceFromFocus;
 	public float currentViewAngle;
 	
+	public CameraEffects effects;
 	
 	//used for linear interpolation
 	float moveStartTime, moveDuration, startingDistanceFromFocus;
@@ -32,6 +34,8 @@ public class CameraControls : MonoBehaviour {
 
 	void Awake()
 	{
+		effects = GetComponent<CameraEffects>();
+			
 		matchSubjectRotation = true;
 		lockMovement = false;
 		lockFocus = false;
@@ -202,6 +206,7 @@ public class CameraControls : MonoBehaviour {
 
 			//Calculate appropriate position this frame
 			
+			progress = Mathf.SmoothStep(0,1, progress);
 			transitFocusPosition = Vector3.Lerp(startingFocusPosition, focus.position, progress);
 				
 			//Calculate the appropreate view angle this frame

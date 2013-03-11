@@ -17,9 +17,7 @@ public class Ship : SelectableBody
 	private float defaultDrag;
 	
 	private bool allowMouseDragMovement;
-	
-	//Effects
-	private ParticleSystem lightSpeedEffect;
+		
 	
 	//Variables for FTL
 	private Rigidbody launcher;
@@ -42,7 +40,6 @@ public class Ship : SelectableBody
 		//Initialize
 		shipInfo = ScriptableObject.CreateInstance<ShipData>();
 		defaultDrag = rigidbody.drag;
-		lightSpeedEffect = transform.Find("Light Speed Effect").particleSystem;
 		engine = GetComponent<Engine>() as Engine;
 		lineRendererToLauncher = gameObject.AddComponent<LineRenderer>();
 		asteroidSpawner = GetComponent<ObstacleSpawner>();
@@ -67,7 +64,7 @@ public class Ship : SelectableBody
 	
 	private void SetToDefaultState()
 	{
-		lightSpeedEffect.Stop();
+		Game.mainCamera.effects.DeactivateLightSpeed();
 		engine.Disable();
 		lineRendererToLauncher.enabled = false;
 		
@@ -104,6 +101,7 @@ public class Ship : SelectableBody
 		{
 		case LaunchState.Idle:
 			rigidbody.isKinematic = false;
+			rigidbody.drag = defaultDrag;
 			disableGravity();
 			engine.Disable();
 			asteroidSpawner.Stop();
@@ -118,16 +116,18 @@ public class Ship : SelectableBody
 			break;
 			
 		case LaunchState.Orbit:
+			rigidbody.isKinematic = false;
+			rigidbody.drag = defaultDrag;
 			disableGravity();
 			engine.Disable();
 			asteroidSpawner.Stop();
-			rigidbody.isKinematic = false;
 			break;
 			
 		case LaunchState.Transit:
 			enableGravity();
 			engine.Enable();
 			asteroidSpawner.Go();
+			rigidbody.drag = 0;
 			rigidbody.isKinematic = false;
 			break;
 		}
@@ -139,6 +139,7 @@ public class Ship : SelectableBody
 	{
 		if(newMode == ControlMode.Tactical)
 		{
+			Game.lockSelection = false;
 			Game.SelectObject(gameObject, false);
 			if(Game.mainCamera.currentViewAngle == Game.mainCamera.VIEW_ANGLE_LOW)
 				Game.mainCamera.SwitchViewAngle();
@@ -244,31 +245,32 @@ public class Ship : SelectableBody
 		ftlCounterForce = -ftlImpulse/ftlTime; //constant "drag" force to make that happen
 		
 		//Launch in the direction of the launcher
-		rigidbody.drag = 0;
+		switchState(LaunchState.Transit);
 		rigidbody.AddForce(ftlDirection * ftlImpulse, ForceMode.VelocityChange);
 		timeOfLaunch = Time.fixedTime;
 		
 		//Activate light speed particle system
-		lightSpeedEffect.transform.LookAt(Game.mainCamera.transform.position);
-		lightSpeedEffect.Simulate(1);
-		lightSpeedEffect.Play();
+		Game.mainCamera.effects.ActivateLightSpeed();		
 		
-		switchState(LaunchState.Transit);
 	}
+	
 	
 	public void LeaveFTL()
 	{
-		lightSpeedEffect.Stop();
-		rigidbody.velocity = Vector3.zero;
-		rigidbody.drag = defaultDrag;
+		Game.mainCamera.effects.DeactivateLightSpeed();
 		switchState(LaunchState.Idle);
+		switchMode(ControlMode.Tactical);
 	}
 	
-	
-	void Update()
+	/// <summary>
+	/// Switch state to interplanetary travel without a launch
+	/// </summary>
+	public void EnterFTL()
 	{
-		lightSpeedEffect.particleSystem.startSpeed = 4 + rigidbody.velocity.magnitude/90; 
+		switchState(LaunchState.Transit);
+		switchMode(ControlMode.Flight);
 	}
+	
 	
 	// Update is called once per frame
 	void FixedUpdate() 
