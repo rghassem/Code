@@ -22,7 +22,7 @@ public class CameraControls : MonoBehaviour {
 	float moveStartTime, moveDuration, startingDistanceFromFocus;
 	float rotationRemaining; // non-zero if changing view angle
 	Quaternion startingRotationAroundFocus, startingRotation;
-	Vector3 startingFocusPosition, transitFocusPosition;
+	Vector3 startingFocusPosition, transitFocusPosition, startingCameraPosition;
 	public Transform focus;
 	public GameObject subject;
 	
@@ -30,7 +30,7 @@ public class CameraControls : MonoBehaviour {
 	[HideInInspector]
 	public bool lockMovement = false;
 	public bool lockFocus = false;
-	public bool matchSubjectRotation = true;
+	public bool matchSubjectRotation;
 
 	void Awake()
 	{
@@ -75,8 +75,8 @@ public class CameraControls : MonoBehaviour {
 		
 		subject = target;
 		matchSubjectRotation = matchTargetRotation;
-		AlignSubjectAndFocus();
 		StartMoveFocus(target.transform.position, duration);
+		AlignSubjectAndFocus(); //must happen second so initial conditions are properly set
 	} 
 	
 	private void StartMoveFocus(Vector3 targetPosition, float moveTime )
@@ -90,6 +90,9 @@ public class CameraControls : MonoBehaviour {
 		#pragma warning restore
 		startingFocusPosition = previousFocusPos;
 		startingDistanceFromFocus = Vector3.Distance(transform.position, previousFocusPos);
+		
+		//set starting camera direction vector
+		startingCameraPosition = transform.position; 
 		
 		moveStartTime = Time.time;
 		moveDuration = moveTime;
@@ -158,6 +161,16 @@ public class CameraControls : MonoBehaviour {
 		distanceFromFocus = (distanceFromFocus != ACTION_CAMERA_DISTANCE) ? ACTION_CAMERA_DISTANCE : TOP_CAMERA_DISTANCE;
 	}
 	
+	/// <summary>
+	/// Restores the default camera settings. Meaning top down view
+	/// </summary>
+	public void RestoreDefault()
+	{
+		distanceFromFocus = Game.mainCamera.TOP_CAMERA_DISTANCE;
+		SetViewAngle(VIEW_ANGLE_HIGH, ROTATION_SPEED);
+		effects.DeactivateLightSpeed();
+		Game.mainCamera.lockFocus = false;
+	}
 	
 	/// <summary>
 	/// Changes the distance from focus. Positive distance tracks in, negative tracks out.
@@ -187,12 +200,15 @@ public class CameraControls : MonoBehaviour {
 				float angle; Vector3 axis;
 				subject.transform.localRotation.ToAngleAxis(out angle, out axis);
 				axis.y = 1;
-				focus.localRotation = Quaternion.AngleAxis(angle, axis);
 				focus.localRotation = Quaternion.Euler(subject.transform.localRotation.eulerAngles.x, 
 					subject.transform.localRotation.eulerAngles.y, 0);
 			}
 		}
 	}
+	
+	//TODO: Rethink this whole transition thing from the ground up. There are several layers of half-understood
+	//implementation here. It works, but it is messy and inefficient. All the starting values and the frame logic
+	//should be re-figured-out.
 	
 	void HandleMovement()
 	{		
@@ -215,11 +231,12 @@ public class CameraControls : MonoBehaviour {
 																	targetRotationAroundFocus, progress);
 			
 			float currentDistanceFromFocus = Mathf.Lerp(startingDistanceFromFocus, distanceFromFocus, progress);
+			//Vector3 currentCameraDirection = Vector3.Lerp(startingCameraDirection, -focus.transform.forward, progress);
 			Vector3 offsetFromFocus = -focus.transform.forward * currentDistanceFromFocus; //apply distance
 			offsetFromFocus = currentRotationAroundFocus * offsetFromFocus ; //apply view angle 		
 			
-			//Set position
-			transform.position = transitFocusPosition + offsetFromFocus;
+			//Set position, use a lerp to ensure smooth motion
+			transform.position = Vector3.Lerp(startingCameraPosition, transitFocusPosition + offsetFromFocus, progress);
 			
 			//Calculate appropriate rotation this frame
 

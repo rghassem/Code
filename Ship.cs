@@ -170,15 +170,12 @@ public class Ship : SelectableBody
 	void OnDeath(DamageType causeOfDeath)
 	{
 		Game.gui.shipDisplay.Hide();
-		Game.mainCamera.distanceFromFocus = Game.mainCamera.TOP_CAMERA_DISTANCE;
+		//Game.mainCamera.RestoreDefault(); done inside ReturnToLastPlanet
 		if(Game.SelectedObject == gameObject)
 		{
 			Game.lockSelection = false;
-			Game.ReturnToLastPlanet(2);
-		}
-		if(Game.SelectedObject = gameObject)
-		{
 			Game.highlight.detach();
+			Game.ReturnToLastPlanet(2);
 		}
 	}
 
@@ -323,8 +320,16 @@ public class Ship : SelectableBody
 				if(launcher == null)
 				{
 					//Slow down if moving faster than the speed of light
-					if(rigidbody.velocity.magnitude > Game.SPEED_OF_LIGHT)
-						rigidbody.AddForce(transform.forward * ftlCounterForce, ForceMode.Acceleration);
+					if(ftlCounterForce != 0)
+					{
+						if(rigidbody.velocity.magnitude > Game.SPEED_OF_LIGHT)
+							rigidbody.AddForce(transform.forward * ftlCounterForce, ForceMode.Acceleration);
+					}
+					else 
+					{
+						if(rigidbody.velocity.magnitude > Game.SPEED_OF_LIGHT)
+							rigidbody.velocity = rigidbody.velocity.normalized * Game.SPEED_OF_LIGHT * 0.99f;
+					}
 					//if we've lost all momentum, and its more than one second past launch, then stop
 					//TODO: also need a rule for gravity
 					if(rigidbody.velocity.magnitude < minFTLSpeed && (Time.fixedTime - timeOfLaunch) > 1  

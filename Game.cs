@@ -93,7 +93,7 @@ public class Game : MonoBehaviour {
 		{
 			lastPlanet = GameObject.FindWithTag("StartingPlanet").GetComponent<Planet>();
 		}
-		Game.mainCamera.lockFocus = false;
+		Game.mainCamera.RestoreDefault();
 		gameInstance.StartCoroutine(lastPlanet.DelayedSelfSelect(delay));
 	}
 	
