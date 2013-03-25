@@ -9,6 +9,7 @@ public class SafeZone : MonoBehaviour {
 	
 	float radius;
 	ILine ring;
+	SelectableBody source;
 	
 	public static SafeZone Spawn(float zoneRadius, GameObject origin)
 	{
@@ -24,6 +25,7 @@ public class SafeZone : MonoBehaviour {
 		collider.radius = zoneRadius;
 		collider.isTrigger = true;
 		
+		safeZone.source = origin.GetComponent<SelectableBody>();
 		
 		return safeZone;
 	}
@@ -35,6 +37,7 @@ public class SafeZone : MonoBehaviour {
 		if(ship != null)
 		{
 			ship.EnterFTL();
+			OnExit();
 		}
 	}
 	
@@ -44,7 +47,22 @@ public class SafeZone : MonoBehaviour {
 		if(ship != null)
 		{
 			ship.LeaveFTL();
+			OnEnter();
 		}
+	}
+	
+	public void OnExit()
+	{
+		if(source is Planet)
+			Game.gui.planetMenu.Close();
+	}
+	
+	public void OnEnter()
+	{
+		Game.mainCamera.RestoreDefault();
+		source.SelfSelect();
+		if(source is Planet)
+			Game.gui.planetMenu.Open(source.gameObject);
 	}
 	
 	public void SetRadius(float radius)

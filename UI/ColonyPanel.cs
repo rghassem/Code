@@ -20,7 +20,7 @@ public class ColonyPanel : MonoBehaviour {
 	Planet planet;
 	
 	// Use this for initialization
-	void Start () {
+	void Awake () {
 		
 		Transform planetInfoBase = transform.Find("PlanetInfoPane");
 		

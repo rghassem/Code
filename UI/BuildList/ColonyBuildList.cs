@@ -13,20 +13,33 @@ public class ColonyBuildList : MonoBehaviour {
 	int buildingCount;
 	GameObject currentPlanet;
 	HashSet<BuildListItemData> avaiblableStructures;
-	
+		
 	// Use this for initialization
 	void Awake () {
 		structuresTable = GetComponent<UITable>() as UITable;
 		buildingCount = 0;
-		avaiblableStructures = new HashSet<BuildListItemData>();
 	}
 	
 	
 	public void LoadBuildings(GameObject planet)
 	{
 		currentPlanet = planet; 
+		UpdateBuildList(false);
+	}
+	
+	/// <summary>
+	/// Updates the build list taking into account both the player's available buildings and the state of the build menu.
+	/// </summary>
+	public void UpdateBuildList(bool surfaceMode)
+	{
+		avaiblableStructures = new HashSet<BuildListItemData>();
 		foreach(BuildListItemData building in Game.state.possibleBuildings)
 		{
+			//only add buildings for the correct mode
+			if(building.buildingType == BuildingType.Surface && !surfaceMode || 
+			   building.buildingType != BuildingType.Surface && surfaceMode)
+				continue;
+			
 			avaiblableStructures.Add(building);
 		}
 		RefreshList();
@@ -67,13 +80,7 @@ public class ColonyBuildList : MonoBehaviour {
 	private void AddBuildable(BuildListItemData buildingData)
 	{
 		GameObject newBuilding = Instantiate(buildingBoxPrefab, Vector3.zero, Quaternion.identity) as GameObject;
-		newBuilding.transform.parent = transform;
-		newBuilding.transform.localPosition = Vector3.zero;
-		newBuilding.transform.localScale = Vector3.one;
-		BuildListItem buildingController = newBuilding.GetComponent<BuildListItem>();
-		buildingController.enabled = true;
-		buildingController.Initialize(buildingData);
-		
+		BuildListItem.Spawn(newBuilding, gameObject, buildingData);
 		buildingCount++;
 	}
 	

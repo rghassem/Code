@@ -16,4 +16,9 @@ public class ColonyBuildPanel : MonoBehaviour {
 	{
 		structuresList.LoadBuildings(currentPlanet);
 	}
+	
+	public void FilterForSurfaceView(bool isSurfaceView)
+	{
+		structuresList.UpdateBuildList(isSurfaceView);
+	}
 }

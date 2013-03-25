@@ -8,7 +8,7 @@ public class OpenShipsButton : MonoBehaviour {
 	//private bool isOpen = false;
 	//private Direction direction = Direction.Forward;
 	
-	void Start()
+	void Awake()
 	{
 		Transform shipsBody = transform.Find("Ships").Find("ShipsBody");
 		bodyTweener = shipsBody.gameObject.GetComponent<TweenScale>();

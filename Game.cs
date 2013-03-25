@@ -21,6 +21,8 @@ public class Game : MonoBehaviour {
 	
 	public static PlayerState state;
 	
+	public static BuildableRegistry buildables;
+	
 	private static Game gameInstance;
 		
 	void Awake () 
@@ -31,7 +33,13 @@ public class Game : MonoBehaviour {
 		gui = new UI();
 		gui.Initialize();
 		
+		buildables = GetComponent<BuildableRegistry>(); //must be before state, because state references this in initialization
 		state = new PlayerState();
+	}
+	
+	void Start()
+	{
+		Game.gui.planetMenu.Open(GameObject.FindWithTag("StartingPlanet"));
 	}
 	
 	// Update is called once per frame
@@ -93,8 +101,14 @@ public class Game : MonoBehaviour {
 		{
 			lastPlanet = GameObject.FindWithTag("StartingPlanet").GetComponent<Planet>();
 		}
-		Game.mainCamera.RestoreDefault();
-		gameInstance.StartCoroutine(lastPlanet.DelayedSelfSelect(delay));
+		SafeZone lastSafeZone = lastPlanet.transform.Find("SafeZone").GetComponent<SafeZone>();
+		gameInstance.StartCoroutine(gameInstance.RestoreLastPlanet(delay, lastSafeZone));
+	}
+	
+	private IEnumerator RestoreLastPlanet(float delay, SafeZone lastSafeZone)
+	{
+		yield return new WaitForSeconds(delay);
+		lastSafeZone.OnEnter();
 	}
 	
 	

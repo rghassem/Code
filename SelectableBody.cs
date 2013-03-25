@@ -21,7 +21,7 @@ public class SelectableBody : MonoBehaviour {
 		SelfSelect();
 	}
 	
-	protected virtual void SelfSelect()
+	public virtual void SelfSelect()
 	{
 		if(Game.SelectedObject == gameObject)
 			return;

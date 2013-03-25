@@ -34,7 +34,7 @@ public class PlanetMenuControls : MonoBehaviour
 	StructurePopupPanel structureInfoSection;
 
 	// Use this for initialization
-	void Start ()
+	void Awake ()
 	{		
 		childPanels = new List<ScalablePanel>();
 		childPanels.Add(mainColonyPanel.GetComponent<ScalablePanel>());
@@ -56,14 +56,9 @@ public class PlanetMenuControls : MonoBehaviour
 		buildSection.LoadColony(currentPlanet);
 		
 		//Show the menu
-		foreach(ScalablePanel child in childPanels)
-		{
-			child.Open();
-		}
+		mainColonyPanel.GetComponent<ScalablePanel>().Open();
+		buildPanel.GetComponent<ScalablePanel>().Open();
 		
-		//Lock the game and camera on this planet
-		Game.lockSelection = true;
-		Game.mainCamera.SwitchViewAngle(CameraViewMode.Perspective);
 		planet = currentPlanet;
 	}
 	
@@ -75,11 +70,22 @@ public class PlanetMenuControls : MonoBehaviour
 			child.Close();
 		}
 		structureInfoSection.Hide();
+	}
+	
+	public void EnterPlanetView()
+	{
+		rightPanel.GetComponent<ScalablePanel>().Open();
+		buildSection.FilterForSurfaceView(true);
+	}
+	
+	public void ExitPlanetView()
+	{
+		rightPanel.GetComponent<ScalablePanel>().Close();
+		buildSection.FilterForSurfaceView(false);
 		
 		//Free the selection/camera
 		Game.lockSelection = false;
 		Game.mainCamera.SwitchViewAngle(CameraViewMode.Top);
-
 	}
 	
 	/// <summary>

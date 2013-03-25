@@ -219,7 +219,7 @@ public class LineDrawer : MonoBehaviour {
 	
 	class Circle :Drawing
 	{		
-		const int MAX_SEGMENTS = 100;
+		const int MAX_SEGMENTS = 100000;
 		
 		protected int segments;
 		protected GameObject origin;
@@ -229,8 +229,8 @@ public class LineDrawer : MonoBehaviour {
 
 		public Circle(Vector3 origin, float radius, Color color, int width)
 		{
-			segments = Mathf.Min((int)radius, MAX_SEGMENTS);
-			vectorLine = new VectorLine("SelectCircle", new Vector3[segments * 2], color, null, width);
+			segments = Mathf.Min((int)(radius * 2 * Mathf.PI), MAX_SEGMENTS);
+			vectorLine = new VectorLine("SelectCircle", new Vector3[segments * 2], color, null, width, LineType.Discrete, Joins.Weld);
 			vectorLine.MakeCircle(origin, Vector3.up, radius, segments);
 			prevPosition = origin;
 			circleColor = color;
@@ -314,7 +314,10 @@ public class LineDrawer : MonoBehaviour {
 			
 			if(actualRadius < radius)
 				actualRadius = Mathf.Min(actualRadius + (animSpeed * Time.deltaTime), radius);
-		
+			
+			//Idea: rotate lines slightly to fix artifact when viewed from side.
+			//vectorLine.vectorObject.transform.rotation = 
+			//	Quaternion.AngleAxis(1, Camera.mainCamera.transform.right.normalized);
 			vectorLine.MakeCircle(origin.transform.position, Vector3.up, actualRadius, segments); 
 			vectorLine.Draw3D();
 		}

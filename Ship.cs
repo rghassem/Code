@@ -214,6 +214,10 @@ public class Ship : SelectableBody
 		
 		rigidbody.velocity = Vector3.zero;
 		switchState(LaunchState.Launching);
+		
+		//When we are launching, exit the current safe zone early
+		Game.lastPlanet.transform.Find("SafeZone").GetComponent<SafeZone>().OnExit();
+
 		allowMouseDragMovement = false;
 	}
 	
@@ -462,7 +466,7 @@ public class Ship : SelectableBody
 	}
 	
 	//Overrides
-	protected override void SelfSelect()
+	public override void SelfSelect()
 	{
 		Game.SelectObject(gameObject, false);
 	}

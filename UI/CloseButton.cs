@@ -5,6 +5,6 @@ public class CloseButton : MonoBehaviour {
 
 	void OnClick()
 	{
-		Game.gui.planetMenu.Close();
+		Game.gui.planetMenu.ExitPlanetView();
 	}
 }

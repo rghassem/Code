@@ -4,7 +4,7 @@ using System.Collections;
 [RequireComponent (typeof(TweenScale))]
 public class ScalablePanel : MonoBehaviour {
 	
-	readonly Vector3 hidingOffset = new Vector3(-100, -100, -100);
+	readonly Vector3 HIDING_OFFSET = new Vector3(-100, -100, -100);
 	
 	[HideInInspector]
 	public bool isOpen;
@@ -14,12 +14,12 @@ public class ScalablePanel : MonoBehaviour {
 	Vector3 correctPosition;
 	
 	// Use this for initialization
-	void Start () {
+	void Awake () {
 			
 		isOpen = false;
 		
 		correctPosition = transform.position;
-		transform.position = hidingOffset; //hide offscreen on level start
+		transform.position = HIDING_OFFSET; //hide offscreen on level start
 		
 		tweener = gameObject.GetComponent<TweenScale>();
 		tweener.eventReceiver = gameObject;

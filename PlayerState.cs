@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
 /// This class holds information on the player's current global game state. Eg, what technologies have been unlocked, how many research
@@ -12,7 +13,11 @@ public class PlayerState
 	public PlayerState()
 	{
 		possibleBuildings = new List<BuildListItemData>();
-		possibleBuildings.Add(new BuildListItemData("Nuclear Plant", BuildingType.Power));
+		GameObject powerPlant = Game.buildables.GetBuildableObjectByName("Nuclear Power Plant");
+		possibleBuildings.Add(new BuildListItemData("Nuclear Plant", BuildingType.Surface, powerPlant ));
+		
+		GameObject spaceShip = Game.buildables.GetBuildableObjectByName("Space_Shooter");
+		possibleBuildings.Add(new BuildListItemData("Space Ship", BuildingType.Ship, spaceShip ));
 	}
 	
 }

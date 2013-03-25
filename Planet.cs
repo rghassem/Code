@@ -140,9 +140,13 @@ public class Planet : SelectableBody {
 	{
 		Game.lastPlanet = this;
 		
-		if(Time.time - lastClickTime < Game.DOUBLE_CLICK_THRESHHOLD_INTERVAL)
+		if(Time.time - lastClickTime < Game.DOUBLE_CLICK_THRESHHOLD_INTERVAL 
+			&& Time.time > Game.DOUBLE_CLICK_THRESHHOLD_INTERVAL) //prevent single automatic selects in first seconds from passing
 		{
-			Game.gui.planetMenu.Open(gameObject);			
+			//Lock the game and camera on this planet
+			Game.lockSelection = true;
+			Game.mainCamera.SwitchViewAngle(CameraViewMode.Perspective);
+			Game.gui.planetMenu.EnterPlanetView();
 		}
 		else lastClickTime = Time.time;
 	}
@@ -152,9 +156,6 @@ public class Planet : SelectableBody {
 		if(Game.SelectedObject == gameObject)
 		{
 			spinVelocity -= MAX_SPIN_VELOCITY * Time.deltaTime * Mathf.Sign(delta.x);
-			
-			//spinVelocity -= delta.x * Time.deltaTime;
-			//spinVelocity = Mathf.Sign(spinVelocity) *  Mathf.Min(Mathf.Abs(spinVelocity), MAX_SPIN_VELOCITY);
 		}
 	}
 	
