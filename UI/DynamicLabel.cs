@@ -58,7 +58,7 @@ public class DynamicLabel : MonoBehaviour {
 		{		
 			Vector3 offset3d = new Vector3(offset.x, offset.y, 0);
 			Vector3 anchorPosition = anchor.transform.position;
-			Vector3 positionInUI = Game.gui.WorldToUIPoint(anchorPosition, Vector3.zero);
+			Vector3 positionInUI = Game.gui.WorldToUIPoint(anchorPosition);
 			
 			transform.localPosition = positionInUI + offset3d;
 			

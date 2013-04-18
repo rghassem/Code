@@ -7,6 +7,9 @@ public class BuildListItem : MonoBehaviour {
 	
 	public BuildListItemData data {get; protected set;}
 	
+	[HideInInspector]
+	public bool ignoreDropSurfaces;
+	
 	UILabel label;
 	
 	//Structure currentPlacingStructure;
@@ -16,12 +19,17 @@ public class BuildListItem : MonoBehaviour {
 	Planet currentPlanet;
 	BuildableShadow dropShadow;
 	
+	ColonyBuildList buildList;
+	
 	public static BuildListItem Spawn(GameObject host, GameObject creator, BuildListItemData buildingData)
 	{
 		host.transform.parent = creator.transform;
 		host.transform.localPosition = Vector3.zero;
 		host.transform.localScale = Vector3.one;
+		
 		BuildListItem buildingController = host.GetComponent<BuildListItem>();
+		
+		buildingController.buildList = creator.GetComponent<ColonyBuildList>();
 		buildingController.Initialize(buildingData);
 		buildingController.enabled = true;
 		
@@ -46,12 +54,23 @@ public class BuildListItem : MonoBehaviour {
 	{
 		currentPlanet = Game.gui.planetMenu.planet.GetComponent<Planet>();
 		isBeingDragged = true; 
-		dropShadow = BuildableShadow.Spawn(placementPrefab);
+		
+		if(data.buildingType != BuildingType.Surface)
+		{
+			dropShadow = BuildableShadow.Spawn(placementPrefab, currentPlanet.gameObject);
+			ignoreDropSurfaces = true;
+		}
+		else 
+		{
+			dropShadow = BuildableShadow.Spawn(placementPrefab);
+			ignoreDropSurfaces = false;
+		}
+		
 		dropShadow.collider.enabled = false; //collider must be disabled, otherwise it will intercept the drop event before
 		//the drag drop surface can pick it up.
 	}
 	
-	void OnDropFail ()
+	void OnDropFail()
 	{
 		EndDragging();
 	}
@@ -73,7 +92,13 @@ public class BuildListItem : MonoBehaviour {
 	void EndDragging()
 	{
 		isBeingDragged = false; 
-		Destroy(dropShadow.gameObject);
+		
+		//Destroy shadow if it goes on the planet surface where NGUI's DragDropSurface will instantiate the real thing
+		//also destroy if it is in an invalid state for building, such as if overlapping another object.
+		if(data.buildingType == BuildingType.Surface || !dropShadow.canBeBuilt)
+			Destroy(dropShadow.gameObject);
+		else //turn the shadow into the real object
+			dropShadow.Build();
 	}
 	
 	#endregion
@@ -110,15 +135,18 @@ public class BuildListItem : MonoBehaviour {
 			yEqualsZero.Raycast(rayFromMouse,  out distance);
 			Vector3 point = rayFromMouse.GetPoint(distance);
 			
-			if(!Physics.CheckSphere(point, dropShadow.collider.bounds.extents.magnitude) )
+			if(!Physics.CheckSphere(point, dropShadow.collider.bounds.extents.magnitude) 
+				&& !buildList.CheckMouseOverlap())
 			{
 				//Nothing overlapping
 				dropShadow.transform.position = point;
+				dropShadow.canBeBuilt = true;
 			}
 			else
 			{
 				//Overlapping something
-				dropShadow.transform.position = Vector3.zero;
+				dropShadow.transform.position = new Vector3(0, 1000, 0); //put it where it won't be seen
+				dropShadow.canBeBuilt = false;
 			}
 		}
 	}

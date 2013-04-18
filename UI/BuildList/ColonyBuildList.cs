@@ -9,9 +9,14 @@ public class ColonyBuildList : MonoBehaviour {
 	/// </summary>
 	public GameObject buildingBoxPrefab;
 	
+	/// <summary>
+	/// The size of the collder bounds. Copy here from the collider in inspector
+	/// </summary>
+	public Vector2 collderBoundsSize;
+	
 	UITable structuresTable;
 	int buildingCount;
-	GameObject currentPlanet;
+	//GameObject currentPlanet;
 	HashSet<BuildListItemData> avaiblableStructures;
 		
 	// Use this for initialization
@@ -23,7 +28,7 @@ public class ColonyBuildList : MonoBehaviour {
 	
 	public void LoadBuildings(GameObject planet)
 	{
-		currentPlanet = planet; 
+		//currentPlanet = planet; 
 		UpdateBuildList(false);
 	}
 	
@@ -67,7 +72,23 @@ public class ColonyBuildList : MonoBehaviour {
 	public void OnChildMoved(GameObject child)
 	{
 		BuildListItemData missingData = child.GetComponent<BuildListItem>().data;
-		RestoreOneItem(missingData);
+		if(missingData.buildingType == BuildingType.Surface) //Only surface ListItems are consumed by DropSurfaces
+			RestoreOneItem(missingData);
+	}
+	
+	/// <summary>
+	/// Returns true if the mouse overlaps the build list. Used to determine when a dragdropitem is being returned
+	/// to the list.
+	/// </summary>
+	public bool CheckMouseOverlap()
+	{
+		//Get the mouse coordinate relative to this widget's pivot.
+		Vector2 mousePositionAsGui = Game.gui.ScreenToUIPoint(Input.mousePosition, gameObject);
+		
+		//Use the colliderBoundsSize (which must be hand copied from the collder's dimensions in the inspector
+		//to determine overlap with the panel.
+		Rect bounds = new Rect(0, 0, collderBoundsSize.x, collderBoundsSize.y); 
+		return bounds.Contains(new Vector2(mousePositionAsGui.x, -mousePositionAsGui.y));//flip y
 	}
 	
 	

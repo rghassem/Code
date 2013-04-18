@@ -68,7 +68,7 @@ public class StructurePopupPanel : MonoBehaviour {
 			- new Vector3(Screen.width/2, Screen.height/2, 0)                    //compensate for UI 0 at center of screen
 			+ new Vector3(offsetDistance ,0,0);                                  //add offset   
 		
-		Vector3 targetUICoord = Game.gui.ScreenToUIPoint(targetSreenCoord );     //take into account possible UI scaling
+		Vector3 targetUICoord = Game.gui.ScreenToUIScale(targetSreenCoord );     //take into account possible UI scaling
 		
 		Vector3 result = targetUICoord; 
 		result.z = 0;

@@ -14,7 +14,7 @@ public class RocketTrail : MonoBehaviour {
 		exhaust = transform.Find("Rocket Smoke Effect").particleSystem;
 		flames = transform.Find("Rocket Fire Effect").particleSystem;
 		defaultFlameEmissionRate = flames.emissionRate;
-		//Stop();
+		Stop();
 	}
 	
 	public void Play()
