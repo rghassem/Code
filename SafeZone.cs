@@ -39,15 +39,28 @@ public class SafeZone : MonoBehaviour {
 			ship.EnterFTL();
 			OnExit();
 		}
+		else if(source is Planet)
+			OnExit();
 	}
 	
 	void OnTriggerEnter(Collider other)
 	{
-		Ship ship = other.GetComponent<Ship>();
-		if(ship != null)
+		if(other.name == "CameraFocus" && source is Planet)
 		{
-			ship.LeaveFTL();
-			OnEnter();
+			Game.gui.planetMenu.Open(source.gameObject);
+		}
+		else
+		{
+			Ship ship = other.GetComponent<Ship>();
+			if(ship != null)
+			{
+				if(ship.GetLaunchState() == "FTL")
+				{
+					ship.LeaveFTL();
+					source.SelfSelect(); //TODO: Maybe center on the planet instead or in addition?
+				}
+				OnEnter();
+			}
 		}
 	}
 	
@@ -60,7 +73,7 @@ public class SafeZone : MonoBehaviour {
 	public void OnEnter()
 	{
 		Game.mainCamera.RestoreDefault();
-		source.SelfSelect();
+		
 		if(source is Planet)
 			Game.gui.planetMenu.Open(source.gameObject);
 	}
@@ -75,6 +88,11 @@ public class SafeZone : MonoBehaviour {
 		if(ring == null)
 			DrawRing();
 		ring.Show();
+	}
+	
+	public bool Contains(Vector3 point)
+	{
+		return (transform.position - point).magnitude < radius;
 	}
 	
 	public void HideRing()

@@ -52,6 +52,8 @@ public class BuildListItem : MonoBehaviour {
 	
 	void OnDragStart()
 	{
+		Game.mainCamera.lockInput = true; //Stop the camera from responding to drag controls...
+		
 		currentPlanet = Game.gui.planetMenu.planet.GetComponent<Planet>();
 		isBeingDragged = true; 
 		
@@ -91,11 +93,13 @@ public class BuildListItem : MonoBehaviour {
 	
 	void EndDragging()
 	{
-		isBeingDragged = false; 
+		isBeingDragged = false;
+		Game.mainCamera.lockInput = false;
 		
 		//Destroy shadow if it goes on the planet surface where NGUI's DragDropSurface will instantiate the real thing
 		//also destroy if it is in an invalid state for building, such as if overlapping another object.
-		if(data.buildingType == BuildingType.Surface || !dropShadow.canBeBuilt)
+		if(data.buildingType == BuildingType.Surface || 
+			!dropShadow.canBeBuilt )
 			Destroy(dropShadow.gameObject);
 		else //turn the shadow into the real object
 			dropShadow.Build();
@@ -136,7 +140,8 @@ public class BuildListItem : MonoBehaviour {
 			Vector3 point = rayFromMouse.GetPoint(distance);
 			
 			if(!Physics.CheckSphere(point, dropShadow.collider.bounds.extents.magnitude) 
-				&& !buildList.CheckMouseOverlap())
+				&& !buildList.CheckMouseOverlap()
+				&& currentPlanet.territory.Contains(point))
 			{
 				//Nothing overlapping
 				dropShadow.transform.position = point;

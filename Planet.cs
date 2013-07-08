@@ -6,9 +6,9 @@ public class Planet : SelectableBody {
 		
 	public PlanetData planetInfo;
 	private float lastClickTime;
-	
+	public SafeZone territory;
+
 	float territoryRadius = 50; //should be determined by colony size
-	SafeZone territory;
 
 	
 	const float MAX_SPIN_VELOCITY = 10;

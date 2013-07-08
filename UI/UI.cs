@@ -102,4 +102,14 @@ public class UI  {
 	{
 		return new Vector2(threeDCoord.x, threeDCoord.y);
 	}
+	
+	public Vector2 XZof(Vector3 threeDCoord)
+	{
+		return new Vector2(threeDCoord.x, threeDCoord.z);
+	}
+	
+	public Vector3 ToX0Z(Vector3 vector)
+	{
+		return new Vector3(vector.x, 0, vector.y);
+	}
 }

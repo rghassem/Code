@@ -36,9 +36,11 @@ public class Launcher : SelectableBody {
 	
 	void OnTriggerEnter(Collider other)
 	{
-		launchingShip = other.gameObject.GetComponent<Ship>() as Ship;
-		if(launchingShip != null)
+		
+		Ship collidingShip = other.gameObject.GetComponent<Ship>() as Ship;
+		if(collidingShip != null)
 		{
+			launchingShip = collidingShip;
 			launchingShip.ReadyLaunch(gameObject, LaunchForce, MaxDistance);
 		}
 	}

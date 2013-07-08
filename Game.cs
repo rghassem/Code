@@ -3,6 +3,7 @@ using System.Collections;
 
 public class Game : MonoBehaviour {
 	
+
 	//Global static variables
 	public static GameObject SelectedObject;
 	public static bool lockSelection;
@@ -39,7 +40,7 @@ public class Game : MonoBehaviour {
 	
 	void Start()
 	{
-		Game.gui.planetMenu.Open(GameObject.FindWithTag("StartingPlanet"));
+		lastPlanet = GameObject.FindGameObjectWithTag("StartingPlanet").GetComponent<Planet>();
 	}
 	
 	// Update is called once per frame
@@ -50,6 +51,7 @@ public class Game : MonoBehaviour {
 			DeSelect();
 		}
 	}
+	
 	#region selection
 	
 	public static void SelectObject(GameObject target, bool centerCamera)
@@ -111,27 +113,28 @@ public class Game : MonoBehaviour {
 		lastSafeZone.OnEnter();
 	}
 	
-	
-	public static Vector3 GetMousePositon()
+	public static Vector3 ProjectScreenPointToWorldPlane(Vector3 screenPoint)
 	{
-		Vector3 mousePosition = Input.mousePosition;
-		mousePosition.z = 1;
-		mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
+		screenPoint.z = 1;
+		screenPoint = Camera.main.ScreenToWorldPoint(screenPoint);
 		Vector3 cameraPosition = mainCamera.transform.position;
-		Vector3 directionToWorld = (mousePosition - cameraPosition).normalized;
+		Vector3 directionToWorld = (screenPoint - cameraPosition).normalized;
 				
 		Plane playingField = new  Plane(Vector3.up, Vector3.zero); //the plane y = 0;
-		Ray cameraToWorldByMouse = new Ray(cameraPosition, directionToWorld);
+		Ray cameraToWorldByScreenPoint = new Ray(cameraPosition, directionToWorld);
 		float projectionDistance;
-		playingField.Raycast(cameraToWorldByMouse, out projectionDistance);
+		playingField.Raycast(cameraToWorldByScreenPoint, out projectionDistance);
 		
 		Vector3 result = cameraPosition + (directionToWorld * projectionDistance);
 		GameObject.Find("Marker").transform.position = result;
 		return result;
 	}
 	
-
-	
+	public static Vector3 GetMousePositon()
+	{
+		Vector3 mousePosition = Input.mousePosition;
+		return ProjectScreenPointToWorldPlane(mousePosition);
+	}	
 	
 	
 }

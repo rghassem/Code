@@ -7,10 +7,13 @@ using System.Collections.Generic;
 [RequireComponent(typeof(ObstacleSpawner))]
 public class Ship : SelectableBody
 {	
+	//Orbit mouse drag variables
 	public float MaxDragDistance;    //Maximum distance draggable from start in launch mode
 	public float MaxAcceleration;    //Maximum acceleration attainable
-	public float MaxRotationalSpeed; //Rotational speed in degrees per second
+	public float MaxOrbitAngularSpeed; //Rotational speed in degrees per second
 	public float Responsiveness;	 //Newton s of force applied per meter distant the mouse gets
+	
+	public float MaxTransitAngularSpeed;
 	
 	public Gravitable gravityComponent;
 			
@@ -309,12 +312,14 @@ public class Ship : SelectableBody
 					HandleKeyInput();
 					TurnTowards(rigidbody.velocity.normalized);
 				}
-				else
+				else //ControlMode.Tactical
 				{
 					forceVector = GetMouseDragMovement();
 					rigidbody.AddForce(forceVector,ForceMode.Force);
 					if(forceVector != Vector3.zero)
+					{
 						TurnTowards(forceVector);
+					}
 				}
 				break;	
 			
@@ -344,6 +349,7 @@ public class Ship : SelectableBody
 				}
 				HandleKeyInput();
 				TurnTowards(rigidbody.velocity.normalized);
+
 				break;
 		}
 	}
@@ -392,6 +398,8 @@ public class Ship : SelectableBody
 			Vector3 forceVector = transform.right * inputX + transform.forward * inputZ;
 			
 			engine.Fly(forceVector.normalized);
+			//if(forceVector != Vector3.zero)
+			//	TurnTowards(forceVector.normalized);
 			
 			if( Input.GetKey(KeyCode.Space) )
 			{
@@ -403,6 +411,8 @@ public class Ship : SelectableBody
 	private void TurnTowards(Vector3 direction)
 	{
 		Quaternion targetRotation = Quaternion.LookRotation(direction.normalized, transform.up);
+		
+		float MaxRotationalSpeed = (state == LaunchState.Transit) ? MaxTransitAngularSpeed : MaxOrbitAngularSpeed;
 		Quaternion rotationThisFrame = Quaternion.RotateTowards(transform.rotation, targetRotation, Time.fixedDeltaTime*MaxRotationalSpeed);
 		transform.rotation = rotationThisFrame;
 	}

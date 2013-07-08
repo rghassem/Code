@@ -11,27 +11,35 @@ public class CameraControls : MonoBehaviour {
 	public readonly float VIEW_ANGLE_LOW = 15;
 	public readonly float VIEW_ANGLE_HIGH = 90;
 	
+	public readonly float DRAG_MOVEMENT_THRESHOLD = 5;
+	public readonly float DRAG_MOVEMENT_CAP = 100;
+	public readonly float DRAG_MOVEMENT_MAX_SPEED = 1000; //meters per second
+	public readonly float DRAG_RELEASE_SPEED_FALLOFF = 4; //fraction of speed lost in one second after drag release
+	
+	public readonly string FOCUS_OBJECT_NAME = "CameraFocus";
+	
 	Quaternion defaultFocusRotation;
 	
 	public float distanceFromFocus;
 	public float currentViewAngle;
 	
 	public CameraEffects effects;
+
+	public Transform focus;
+	public GameObject subject;
 	
 	//used for linear interpolation
 	float moveStartTime, moveDuration, startingDistanceFromFocus;
 	float rotationRemaining; // non-zero if changing view angle
 	Quaternion startingRotationAroundFocus, startingRotation;
 	Vector3 startingFocusPosition, transitFocusPosition, startingCameraPosition;
-	public Transform focus;
-	public GameObject subject;
 	
 	//Camera locking controls
-	[HideInInspector]
-	public bool lockMovement = false;
-	public bool lockFocus = false;
-	public bool matchSubjectRotation;
-
+	public bool lockInput;
+	bool lockMovement;	
+	bool lockFocus;
+	bool matchSubjectRotation;
+	
 	void Awake()
 	{
 		effects = GetComponent<CameraEffects>();
@@ -47,12 +55,21 @@ public class CameraControls : MonoBehaviour {
 	// Use this for initialization, happens after awake
 	void Start() 
 	{
-		focus = new GameObject("Camera Focus").transform;
+		//Create focus
+		focus = new GameObject(FOCUS_OBJECT_NAME).transform;
+		focus.gameObject.AddComponent<SphereCollider>();
+		focus.gameObject.AddComponent<Rigidbody>();
+		focus.collider.isTrigger = true;
+		focus.rigidbody.isKinematic = true;
+		
 		defaultFocusRotation = focus.rotation;
 		//start with focus directly beneath camera;
 		Vector3 startingPosition = transform.position;
 		startingPosition.y = 0;
 		StartMoveFocus(startingPosition, 0);
+		
+		//Start infinite coroutine to handle mouse movement
+		StartCoroutine(HandleMouseMovement());
 	}
 	
 	/// <summary>
@@ -181,6 +198,18 @@ public class CameraControls : MonoBehaviour {
 			distanceFromFocus += deltaDistance;
 	}
 	
+	public void FreezeMovement(bool freeze)
+	{
+		if(freeze)
+		{
+			//Stop movement
+		}
+		else
+		{
+			//all
+		}
+	}
+	
 	// Update is called once per frame
 	void Update() 
 	{
@@ -256,7 +285,7 @@ public class CameraControls : MonoBehaviour {
 	{
 		Track( scrollWheelSensitivity * -Input.GetAxis("Mouse ScrollWheel") ); 
 		
-		if(lockMovement || lockFocus)
+		if(lockMovement || lockFocus || lockInput)
 			return;
 		
 		float inputX = Input.GetAxis("Horizontal");
@@ -266,6 +295,70 @@ public class CameraControls : MonoBehaviour {
 			focus.Translate(inputX, 0, inputY);
 		}
 		
+	}
+	
+	IEnumerator HandleMouseMovement() 	//Coroutine
+	{		
+		Vector3 clickAndHoldPosition;
+		float speed;
+		Vector3 direction;
+		bool rememberMouseClicked = false;
+		
+		while(true)
+		{	
+			speed = 0;
+			direction = Vector3.zero;
+			
+			//Mouse button clicked
+			if(Input.GetMouseButtonDown(0) || rememberMouseClicked )
+			{
+				rememberMouseClicked = false;
+				clickAndHoldPosition = Input.mousePosition;
+				Vector3 clickAndHoldWorldPosition = Game.ProjectScreenPointToWorldPlane(clickAndHoldPosition);
+				yield return null;
+				
+				//Button held down
+				while( Input.GetMouseButton(0) ) //SelectedObject because we might be dragging a ship or something and screen movement innapropriate
+				{
+					if( lockMovement || lockFocus || lockInput || Game.SelectedObject != null)  break;
+					
+					Vector3 currentMousePos = Input.mousePosition;
+					Vector3 diffVector = currentMousePos - clickAndHoldPosition;
+					
+					bool passedThreshold = false;
+					if(diffVector.magnitude > DRAG_MOVEMENT_THRESHOLD || passedThreshold)
+					{
+						passedThreshold = true; //once past the threshold, stay there this click
+						
+						
+						Vector3 worldDiffVector = Game.ProjectScreenPointToWorldPlane(currentMousePos) - clickAndHoldWorldPosition;
+						direction = -worldDiffVector.normalized;
+						
+						float potential = Mathf.Min(1, worldDiffVector.magnitude / DRAG_MOVEMENT_CAP );
+						speed =  (potential > 0.5f) ? Mathf.SmoothStep(0, DRAG_MOVEMENT_MAX_SPEED, potential)
+													: Mathf.Lerp(0, DRAG_MOVEMENT_MAX_SPEED, potential);
+						
+						focus.Translate(direction * speed * Time.deltaTime);
+					}
+					
+					yield return null;
+				}
+				
+				//Button released, decrease speed till we are stopped
+				while(speed > 1)
+				{			
+					if(Input.GetMouseButtonDown(0))
+					{
+						rememberMouseClicked = true;
+						break;
+					}
+					focus.Translate(direction * speed * Time.deltaTime);
+					speed -= (speed * DRAG_RELEASE_SPEED_FALLOFF * Time.deltaTime); //TODO: Constant, adjust by time
+					yield return null;
+				}
+			}
+			yield return null;
+		}
 	}
 	
 }

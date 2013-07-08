@@ -8,10 +8,9 @@ using System.Collections.Generic;
 public class Spawner : MonoBehaviour {
 	
 	/// <summary>
-	/// The spawned objects. One will be randomly select to spawn each spawn time
+	/// The spawned objects. One will be randomly selected to spawn each spawn call
 	/// </summary>
 	public GameObject[] prefabsToSpawn;
-	
 	
 	/// <summary>
 	/// The minimum distance from the spawner to spawn the object
