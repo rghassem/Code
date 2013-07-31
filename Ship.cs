@@ -7,13 +7,13 @@ using System.Collections.Generic;
 [RequireComponent(typeof(ObstacleSpawner))]
 public class Ship : SelectableBody
 {	
+	readonly float SCREEN_SWIPE_ANGLE = 180; //Total turning angle from swiping accross the entire screen with mouse or touch controls
+	
 	//Orbit mouse drag variables
 	public float MaxDragDistance;    //Maximum distance draggable from start in launch mode
 	public float MaxAcceleration;    //Maximum acceleration attainable
 	public float MaxOrbitAngularSpeed; //Rotational speed in degrees per second
 	public float Responsiveness;	 //Newton s of force applied per meter distant the mouse gets
-	
-	public float MaxTransitAngularSpeed;
 	
 	public Gravitable gravityComponent;
 			
@@ -173,7 +173,7 @@ public class Ship : SelectableBody
 	void OnDeath(DamageType causeOfDeath)
 	{
 		Game.gui.shipDisplay.Hide();
-		//Game.mainCamera.RestoreDefault(); done inside ReturnToLastPlanet
+		Game.mainCamera.RestoreDefault(); //done inside ReturnToLastPlanet
 		if(Game.SelectedObject == gameObject)
 		{
 			Game.lockSelection = false;
@@ -189,8 +189,8 @@ public class Ship : SelectableBody
 		{
 			case LaunchState.Idle:			return "Idle";
 			case LaunchState.Launching: 	return "Launching";
-			case LaunchState.Orbit:		return "Sublight";
-			case LaunchState.Transit: 			return "FTL";
+			case LaunchState.Orbit:			return "Sublight";
+			case LaunchState.Transit: 		return "FTL";
 			default: 			  			return "Error";
 		}
 	}
@@ -264,6 +264,7 @@ public class Ship : SelectableBody
 		Game.mainCamera.effects.DeactivateLightSpeed();
 		switchState(LaunchState.Idle);
 		switchMode(ControlMode.Tactical);
+		StopCoroutine("HandleMouseDragRotation");
 	}
 	
 	/// <summary>
@@ -273,6 +274,7 @@ public class Ship : SelectableBody
 	{
 		switchState(LaunchState.Transit);
 		switchMode(ControlMode.Flight);
+		StartCoroutine("HandleMouseDragRotation");
 	}
 	
 	
@@ -332,7 +334,7 @@ public class Ship : SelectableBody
 					if(ftlCounterForce != 0)
 					{
 						if(rigidbody.velocity.magnitude > Game.SPEED_OF_LIGHT)
-							rigidbody.AddForce(transform.forward * ftlCounterForce, ForceMode.Acceleration);
+							rigidbody.AddForce(rigidbody.velocity.normalized * ftlCounterForce, ForceMode.Acceleration);
 					}
 					else 
 					{
@@ -340,7 +342,6 @@ public class Ship : SelectableBody
 							rigidbody.velocity = rigidbody.velocity.normalized * Game.SPEED_OF_LIGHT * 0.99f;
 					}
 					//if we've lost all momentum, and its more than one second past launch, then stop
-					//TODO: also need a rule for gravity
 					if(rigidbody.velocity.magnitude < minFTLSpeed && (Time.fixedTime - timeOfLaunch) > 1  
 						&& !IsGravitating()) 
 					{
@@ -348,13 +349,54 @@ public class Ship : SelectableBody
 					}
 				}
 				HandleKeyInput();
-				TurnTowards(rigidbody.velocity.normalized);
+				//TurnTowards(rigidbody.velocity.normalized);
+				
 
 				break;
 		}
 	}
 	
-	
+	IEnumerator HandleMouseDragRotation()
+	{
+		bool passedThreshold;
+		while(true)
+		{
+			passedThreshold = false;
+			if(Input.GetMouseButtonDown(0))
+			{
+				Vector3 clickPosition = Input.mousePosition;
+				Vector3 currentMousePos = clickPosition;
+								
+				while( Input.GetMouseButton(0) ) //Button held down
+				{
+					//float mouseMovementDirection = Mathf.Sign( (Input.mousePosition - currentMousePos).x );
+				    currentMousePos = Input.mousePosition;
+					Vector3 diffVector = currentMousePos - clickPosition;
+					
+					
+					if(diffVector.magnitude > Game.mainCamera.DRAG_MOVEMENT_THRESHOLD || passedThreshold)
+					{
+						passedThreshold = true; //once past the threshold, stay there this click
+						
+						//Calculate direction and magnitude of turn
+						float diffInScreenX = currentMousePos.x - clickPosition.x;
+						float diffInScreenRatio = diffInScreenX / Screen.width;
+						float totalTargetRotation = diffInScreenRatio * SCREEN_SWIPE_ANGLE;
+		
+						//Turn the ship in the appropriate direction, and record degrees of rotation (depends on internal engine constraints)
+						float rotation = 0;
+						if( Mathf.Abs(totalTargetRotation) > engine.MaxAngularSpeed * Time.deltaTime ) //prevents jittering
+							rotation = engine.Turn(Mathf.Sign(diffInScreenRatio));
+						
+						//Adjust clickPosition to account for the degrees of rotation acheived this frame 
+						clickPosition += diffVector * (rotation/totalTargetRotation);
+					}
+					yield return null;
+				}
+			}
+			yield return null;
+		}
+	}
 	
 	/// <summary>
 	/// Gets the force by which to move the ship toward the mouse drag, or vector3.zero if no movement
@@ -397,6 +439,7 @@ public class Ship : SelectableBody
 			float inputX = Input.GetAxis("Horizontal");
 			Vector3 forceVector = transform.right * inputX + transform.forward * inputZ;
 			
+			
 			engine.Fly(forceVector.normalized);
 			//if(forceVector != Vector3.zero)
 			//	TurnTowards(forceVector.normalized);
@@ -405,17 +448,25 @@ public class Ship : SelectableBody
 			{
 				engine.Boost(transform.forward);
 			}
+			
+			float orientationInputX = Input.GetAxis("RightHorizontal");
+			if(orientationInputX != 0)
+				engine.Turn(orientationInputX);
 		}
 	}
 	
 	private void TurnTowards(Vector3 direction)
 	{
-		Quaternion targetRotation = Quaternion.LookRotation(direction.normalized, transform.up);
-		
-		float MaxRotationalSpeed = (state == LaunchState.Transit) ? MaxTransitAngularSpeed : MaxOrbitAngularSpeed;
-		Quaternion rotationThisFrame = Quaternion.RotateTowards(transform.rotation, targetRotation, Time.fixedDeltaTime*MaxRotationalSpeed);
-		transform.rotation = rotationThisFrame;
+		if(state == LaunchState.Transit)
+			engine.TurnTowards(direction);
+		else
+		{
+			Quaternion targetRotation = Quaternion.LookRotation(direction.normalized, transform.up);
+			Quaternion rotationThisFrame = Quaternion.RotateTowards(transform.rotation, targetRotation, Time.fixedDeltaTime*MaxOrbitAngularSpeed);
+			transform.rotation = rotationThisFrame;
+		}
 	}
+
 	
 	private void enableGravity()
 	{

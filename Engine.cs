@@ -6,7 +6,10 @@ public class Engine : MonoBehaviour {
 	private readonly float MAX_TILT_ANGLE = 30; //maximum angle for the ship to tilt when turning, in degrees
 	private readonly float TILT_SPEED = 90; //Degrees the ship can tilt in one second
 	private readonly float BOOST_EFFECT_DURATION_SEC = 0.3f;
+	private readonly float TILT_CORRECTION_FORCE = 360; //degrees per second
 	private readonly int BOOST_FLAME_EFFECT_MULTIPLIER = 5;
+	
+	public float MaxAngularSpeed; //Rotational speed in degrees per second
 	
 	//Flight variables
 	public float engineForce;	
@@ -43,6 +46,8 @@ public class Engine : MonoBehaviour {
 													Mathf.Min(Mathf.Abs(deltaTilt), (TILT_SPEED*Time.deltaTime));
 		Quaternion tilt = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, newTilt);
 		transform.rotation = tilt;
+		
+		CorrectTilt();
 	}
 	
 	public void Disable()
@@ -69,8 +74,8 @@ public class Engine : MonoBehaviour {
 			rigidbody.AddForce(force, ForceMode.Force);
 			
 			//Tilt ship in force direction
-			float lateralForceComponent = (transform.worldToLocalMatrix * direction).normalized.x;
-			targetTilt = MAX_TILT_ANGLE * -lateralForceComponent;
+			//float lateralForceComponent = (transform.worldToLocalMatrix * direction).normalized.x;
+			//targetTilt = MAX_TILT_ANGLE * -lateralForceComponent;
 			
 			ConsumeFuel( fuelConsumptionPerSecond * Time.deltaTime );
 			
@@ -80,10 +85,28 @@ public class Engine : MonoBehaviour {
 		else
 		{ 
 			rocketTrail.Stop();
-			targetTilt = 0;
+			//targetTilt = 0;
 		}
 	}
 	
+	
+	public float TurnTowards(Vector3 direction)
+	{
+		Quaternion targetRotation = Quaternion.LookRotation(direction.normalized, transform.up);
+		Quaternion rotationThisFrame = Quaternion.RotateTowards(transform.rotation, targetRotation, Time.fixedDeltaTime*MaxAngularSpeed);
+		float angle; Vector3 axis;
+		rotationThisFrame.ToAngleAxis(out angle, out axis);
+		return Turn (angle/360);
+	}
+	
+	public float Turn(float axis)
+	{
+		axis = Mathf.Clamp(axis, -1, 1);
+		float angle = MaxAngularSpeed * axis * Time.deltaTime;
+		transform.Rotate(0, angle, 0, Space.World);
+		targetTilt = Mathf.Clamp(targetTilt + MAX_TILT_ANGLE * -axis, -MAX_TILT_ANGLE, MAX_TILT_ANGLE);
+		return angle;
+	}
 	
 	public void Boost(Vector3 direction)
 	{
@@ -101,6 +124,20 @@ public class Engine : MonoBehaviour {
 	{
 		currentFuel -= amount;
 		Game.gui.shipDisplay.SetFuelDisplay(currentFuel/totalFuel);
+	}
+	
+	void CorrectTilt()
+	{
+		if(Mathf.Approximately(targetTilt, 0))
+			targetTilt = 0;
+		else 
+		{
+			float tiltSign = Mathf.Sign(targetTilt);
+			targetTilt = Mathf.Abs(targetTilt) - (TILT_CORRECTION_FORCE * Time.deltaTime) * tiltSign; //pull tilt toward 0 by TILT_CORRECTION
+			if(Mathf.Sign(targetTilt) != tiltSign)
+				targetTilt = 0;
+		}
+
 	}
 	
 }

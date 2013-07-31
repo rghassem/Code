@@ -198,18 +198,6 @@ public class CameraControls : MonoBehaviour {
 			distanceFromFocus += deltaDistance;
 	}
 	
-	public void FreezeMovement(bool freeze)
-	{
-		if(freeze)
-		{
-			//Stop movement
-		}
-		else
-		{
-			//all
-		}
-	}
-	
 	// Update is called once per frame
 	void Update() 
 	{
@@ -294,7 +282,7 @@ public class CameraControls : MonoBehaviour {
 		{
 			focus.Translate(inputX, 0, inputY);
 		}
-		
+				
 	}
 	
 	IEnumerator HandleMouseMovement() 	//Coroutine
@@ -318,9 +306,10 @@ public class CameraControls : MonoBehaviour {
 				yield return null;
 				
 				//Button held down
-				while( Input.GetMouseButton(0) ) //SelectedObject because we might be dragging a ship or something and screen movement innapropriate
+				while( Input.GetMouseButton(0) )
 				{
 					if( lockMovement || lockFocus || lockInput || Game.SelectedObject != null)  break;
+					 //SelectedObject because we might be dragging a ship or something and screen movement innapropriate
 					
 					Vector3 currentMousePos = Input.mousePosition;
 					Vector3 diffVector = currentMousePos - clickAndHoldPosition;
@@ -353,7 +342,7 @@ public class CameraControls : MonoBehaviour {
 						break;
 					}
 					focus.Translate(direction * speed * Time.deltaTime);
-					speed -= (speed * DRAG_RELEASE_SPEED_FALLOFF * Time.deltaTime); //TODO: Constant, adjust by time
+					speed -= (speed * DRAG_RELEASE_SPEED_FALLOFF * Time.deltaTime); 
 					yield return null;
 				}
 			}

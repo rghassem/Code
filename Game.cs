@@ -110,7 +110,7 @@ public class Game : MonoBehaviour {
 	private IEnumerator RestoreLastPlanet(float delay, SafeZone lastSafeZone)
 	{
 		yield return new WaitForSeconds(delay);
-		lastSafeZone.OnEnter();
+		mainCamera.CenterOn(lastSafeZone.gameObject, delay, false);
 	}
 	
 	public static Vector3 ProjectScreenPointToWorldPlane(Vector3 screenPoint)
