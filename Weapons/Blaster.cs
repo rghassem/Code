@@ -22,7 +22,7 @@ public class Blaster : MonoBehaviour {
 		if(cooldownCounter > 0)
 			cooldownCounter -= Time.deltaTime;
 		
-		if(Input.GetKeyDown(triggerKey) && Game.SelectedObject == transform.parent.gameObject) //do selection better
+		if(Input.GetKeyDown(triggerKey) && Game.SelectedObject == transform.parent.parent.gameObject) //do selection better
 		{
 			if(cooldownCounter <= 0)
 				Fire();
@@ -66,10 +66,12 @@ public class Blaster : MonoBehaviour {
 	/// The nearest rigid body, or null if none found
 	/// </returns>
 	private Rigidbody GetNearestRigidBody()
-	{				
-		while(actingRigidbody == null && transform.parent != null)
+	{	
+		Transform currentTransform = transform;
+		while(actingRigidbody == null && currentTransform != null)
 		{
-			actingRigidbody = transform.parent.rigidbody;
+			actingRigidbody = currentTransform.rigidbody;
+			currentTransform = currentTransform.parent;
 		}
 		
 		return actingRigidbody;

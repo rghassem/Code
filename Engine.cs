@@ -9,6 +9,8 @@ public class Engine : MonoBehaviour {
 	private readonly float TILT_CORRECTION_FORCE = 360; //degrees per second
 	private readonly int BOOST_FLAME_EFFECT_MULTIPLIER = 5;
 	
+	private float THRUST_PIVOT_TIME = 0.8f; //The time it takes to orient the ship when changing thrust direction. Ignores angular speed.
+	
 	public float MaxAngularSpeed; //Rotational speed in degrees per second
 	
 	//Flight variables
@@ -27,27 +29,74 @@ public class Engine : MonoBehaviour {
 	
 	private bool isEnabled;
 	
-	//Variables for keeping track of tile
-	private float targetTilt;
+	//Variables for keeping track of tilt
+	private float targetTilt, tiltAngle;
+	
+	Vector3 thrustDirection, lastFrameThrustDirection;
+	private float timeSinceThrustPivot;
+	private Transform meshTransform; //The transform on the subobject holding the ship mesh. Transformations have a visual effect only
+	private Quaternion roll, yaw;
 	
 	// Use this for initialization
 	void Awake () {
-		rocketTrail = transform.Find("RocketTrail").GetComponent<RocketTrail>();
+		meshTransform = transform.Find("ShipMesh");
+		rocketTrail = meshTransform.Find("RocketTrail").GetComponent<RocketTrail>();
 		currentFuel = totalFuel;
+		
+		tiltAngle = 0;
 		targetTilt = 0;
+		
+		yaw = meshTransform.localRotation;
+		timeSinceThrustPivot = 0;
+	}
+	
+	float ClosestFactorOf45(float a)
+	{
+		int floor = (int)a / 45;
+		float ceil = (floor * 45) + 45; 
+		if( a % 45 > 45/2)
+			return ceil;
+		else return floor;
 	}
 	
 	void Update()
-	{
-		//tilt the ship toward the direction its being turned
-		float currentTilt = transform.eulerAngles.z < 180 ? transform.eulerAngles.z : transform.eulerAngles.z - 360;
-		float deltaTilt = targetTilt - currentTilt;
-		float newTilt = currentTilt + Mathf.Sign(deltaTilt) * 
-													Mathf.Min(Mathf.Abs(deltaTilt), (TILT_SPEED*Time.deltaTime));
-		Quaternion tilt = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, newTilt);
-		transform.rotation = tilt;
+	{		
+		//Rotate the ship in the direction of thrust. Use shipMesh to move ship body independent of everything else.
 		
+		if(thrustDirection != lastFrameThrustDirection)
+			timeSinceThrustPivot = 0;
+		
+		float sideAngle = Vector3.Angle (transform.right, thrustDirection);
+		float sign = sideAngle > 90 ? -1 : 1;
+		
+		float faceAngle = Vector3.Angle(transform.forward, thrustDirection) * sign;
+		Quaternion targetRot = Quaternion.AngleAxis(faceAngle, Vector3.up);
+		
+		//Calculate the yaw to point ship toward thrust
+		float angleToTarget = Quaternion.Angle(yaw, targetRot );
+		//float progressToTargetThisFrame = Mathf.Min( MaxAngularSpeed * Time.deltaTime / angleToTarget, 1);
+		Quaternion rotationThisFrame = Quaternion.Slerp(yaw, targetRot, timeSinceThrustPivot/THRUST_PIVOT_TIME);
+		yaw = rotationThisFrame; 
+		
+		//Calculate angle to roll ship based on thrust direction (based on yaw)
+		float rollAngle = Quaternion.Angle(yaw, Quaternion.LookRotation(Vector3.forward));
+		//Calculate additional roll (tilt) based on changing orienation (direction player wants to look, no thrust)
+		float deltaTilt = targetTilt - tiltAngle;
+		tiltAngle = tiltAngle + Mathf.Sign(deltaTilt) * 
+													Mathf.Min(Mathf.Abs(deltaTilt), (TILT_SPEED*Time.deltaTime));
+		Quaternion rollThisFrame = Quaternion.AngleAxis(rollAngle + tiltAngle, Vector3.forward);
+		roll = rollThisFrame;
+		
+		//Set the transform on the mesh to the desired rotation
+		meshTransform.localRotation = yaw * roll;
+		
+		//book keeping
+		lastFrameThrustDirection = thrustDirection;
+		timeSinceThrustPivot = Mathf.Min(timeSinceThrustPivot + Time.deltaTime, THRUST_PIVOT_TIME);
 		CorrectTilt();
+		
+		thrustDirection = transform.forward; //thrust direction resets instantly
+
 	}
 	
 	public void Disable()
@@ -73,10 +122,12 @@ public class Engine : MonoBehaviour {
 			//Add force
 			rigidbody.AddForce(force, ForceMode.Force);
 			
+			//remember force direction for rotation effects
+			thrustDirection = direction;
+			
 			//Tilt ship in force direction
 			//float lateralForceComponent = (transform.worldToLocalMatrix * direction).normalized.x;
 			//targetTilt = MAX_TILT_ANGLE * -lateralForceComponent;
-			
 			ConsumeFuel( fuelConsumptionPerSecond * Time.deltaTime );
 			
 			//play effect

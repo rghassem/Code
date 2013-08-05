@@ -16,7 +16,7 @@ public class PlayerState
 		GameObject powerPlant = Game.buildables.GetBuildableObjectByName("Nuclear Power Plant");
 		possibleBuildings.Add(new BuildListItemData("Nuclear Plant", BuildingType.Surface, powerPlant ));
 		
-		GameObject spaceShip = Game.buildables.GetBuildableObjectByName("Space_Shooter");
+		GameObject spaceShip = Game.buildables.GetBuildableObjectByName("BasicShip");
 		possibleBuildings.Add(new BuildListItemData("Space Ship", BuildingType.Ship, spaceShip ));
 	}
 	

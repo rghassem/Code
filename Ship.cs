@@ -441,8 +441,6 @@ public class Ship : SelectableBody
 			
 			
 			engine.Fly(forceVector.normalized);
-			//if(forceVector != Vector3.zero)
-			//	TurnTowards(forceVector.normalized);
 			
 			if( Input.GetKey(KeyCode.Space) )
 			{
@@ -450,8 +448,11 @@ public class Ship : SelectableBody
 			}
 			
 			float orientationInputX = Input.GetAxis("RightHorizontal");
+			float orientationInputZ = Input.GetAxis("RightVertical");
 			if(orientationInputX != 0)
 				engine.Turn(orientationInputX);
+			if(orientationInputZ != 0)
+				engine.TurnTowards(rigidbody.velocity.normalized);
 		}
 	}
 	
