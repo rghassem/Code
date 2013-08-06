@@ -34,10 +34,12 @@ public class Projectile : MonoBehaviour {
 	{
 		//If we have a trail renderer and were fired from a moving object
 		trail = gameObject.GetComponent<TrailRenderer>();
+		
+		//This code offsets the starting position by a small amount so that the trail doesn not overlap the firing ship
 		if(firingObject.rigidbody != null && firingObject.rigidbody.velocity.magnitude > 0 && trail != null)
 		{
-			Vector3 startingPointOffset = trail.time * firingObject.rigidbody.velocity;
-			transform.position += startingPointOffset;
+			float startingPointOffset = trail.time * firingObject.rigidbody.velocity.magnitude;
+			transform.position += (transform.position - firingObject.transform.position).normalized * startingPointOffset;
 		}
 	}
 	

@@ -68,7 +68,7 @@ public class Ship : SelectableBody
 	private void SetToDefaultState()
 	{
 		Game.mainCamera.effects.DeactivateLightSpeed();
-		engine.Disable();
+		engine.enabled = false;
 		lineRendererToLauncher.enabled = false;
 		
 		state = LaunchState.Idle;
@@ -106,14 +106,14 @@ public class Ship : SelectableBody
 			rigidbody.isKinematic = false;
 			rigidbody.drag = defaultDrag;
 			disableGravity();
-			engine.Disable();
+			engine.enabled = false;
 			asteroidSpawner.Stop();
 			switchMode(ControlMode.Tactical);
 			break;
 			
 		case LaunchState.Launching:
 			disableGravity();
-			engine.Disable();
+			engine.enabled = false;
 			asteroidSpawner.Stop();
 			switchMode(ControlMode.Flight);
 			break;
@@ -122,13 +122,13 @@ public class Ship : SelectableBody
 			rigidbody.isKinematic = false;
 			rigidbody.drag = defaultDrag;
 			disableGravity();
-			engine.Disable();
+			engine.enabled = false;
 			asteroidSpawner.Stop();
 			break;
 			
 		case LaunchState.Transit:
 			enableGravity();
-			engine.Enable();
+			engine.enabled = true;
 			asteroidSpawner.Go();
 			rigidbody.drag = 0;
 			rigidbody.isKinematic = false;
@@ -440,7 +440,7 @@ public class Ship : SelectableBody
 			Vector3 forceVector = transform.right * inputX + transform.forward * inputZ;
 			
 			
-			engine.Fly(forceVector.normalized);
+			engine.Fly(forceVector);
 			
 			if( Input.GetKey(KeyCode.Space) )
 			{

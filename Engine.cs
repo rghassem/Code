@@ -9,7 +9,7 @@ public class Engine : MonoBehaviour {
 	private readonly float TILT_CORRECTION_FORCE = 360; //degrees per second
 	private readonly int BOOST_FLAME_EFFECT_MULTIPLIER = 5;
 	
-	private float THRUST_PIVOT_TIME = 0.8f; //The time it takes to orient the ship when changing thrust direction. Ignores angular speed.
+	private readonly float PIVOT_SPEED = 360; //The the speed at which the ship can reorient in response to directional thrust. Degrees per second.
 	
 	public float MaxAngularSpeed; //Rotational speed in degrees per second
 	
@@ -27,13 +27,9 @@ public class Engine : MonoBehaviour {
 	//Effects
 	private RocketTrail rocketTrail;
 	
-	private bool isEnabled;
-	
-	//Variables for keeping track of tilt
+	//Variables for keeping track of rotation
 	private float targetTilt, tiltAngle;
-	
 	Vector3 thrustDirection, lastFrameThrustDirection;
-	private float timeSinceThrustPivot;
 	private Transform meshTransform; //The transform on the subobject holding the ship mesh. Transformations have a visual effect only
 	private Quaternion roll, yaw;
 	
@@ -47,25 +43,13 @@ public class Engine : MonoBehaviour {
 		targetTilt = 0;
 		
 		yaw = meshTransform.localRotation;
-		timeSinceThrustPivot = 0;
+		thrustDirection = transform.forward;
 	}
 	
-	float ClosestFactorOf45(float a)
-	{
-		int floor = (int)a / 45;
-		float ceil = (floor * 45) + 45; 
-		if( a % 45 > 45/2)
-			return ceil;
-		else return floor;
-	}
 	
 	void Update()
 	{		
-		//Rotate the ship in the direction of thrust. Use shipMesh to move ship body independent of everything else.
-		
-		if(thrustDirection != lastFrameThrustDirection)
-			timeSinceThrustPivot = 0;
-		
+		//Rotate the ship in the direction of thrust. Use shipMesh to move ship body independent of everything else.		
 		float sideAngle = Vector3.Angle (transform.right, thrustDirection);
 		float sign = sideAngle > 90 ? -1 : 1;
 		
@@ -73,10 +57,10 @@ public class Engine : MonoBehaviour {
 		Quaternion targetRot = Quaternion.AngleAxis(faceAngle, Vector3.up);
 		
 		//Calculate the yaw to point ship toward thrust
-		float angleToTarget = Quaternion.Angle(yaw, targetRot );
-		//float progressToTargetThisFrame = Mathf.Min( MaxAngularSpeed * Time.deltaTime / angleToTarget, 1);
-		Quaternion rotationThisFrame = Quaternion.Slerp(yaw, targetRot, timeSinceThrustPivot/THRUST_PIVOT_TIME);
-		yaw = rotationThisFrame; 
+		float angleToTarget = Quaternion.Angle(yaw, targetRot);
+		float fractionOfRotationThisFrame =  Mathf.Approximately( angleToTarget, 0) ? 0 :PIVOT_SPEED * Time.deltaTime / angleToTarget;
+		yaw = Quaternion.Slerp(yaw, targetRot, fractionOfRotationThisFrame);
+
 		
 		//Calculate angle to roll ship based on thrust direction (based on yaw)
 		float rollAngle = Quaternion.Angle(yaw, Quaternion.LookRotation(Vector3.forward));
@@ -90,54 +74,34 @@ public class Engine : MonoBehaviour {
 		//Set the transform on the mesh to the desired rotation
 		meshTransform.localRotation = yaw * roll;
 		
-		//book keeping
-		lastFrameThrustDirection = thrustDirection;
-		timeSinceThrustPivot = Mathf.Min(timeSinceThrustPivot + Time.deltaTime, THRUST_PIVOT_TIME);
-		CorrectTilt();
-		
-		thrustDirection = transform.forward; //thrust direction resets instantly
-
+		CorrectTilt(); //pull tilt towards normal
 	}
 	
-	public void Disable()
-	{
-		rocketTrail.Stop();
-		isEnabled = false;
-	}
 	
-	public void Enable()
+	public void Fly(Vector3 direction) //should be called from FixedUpdate
 	{
-		isEnabled = true;
-		targetTilt = 0; 
-	}
-	
-	public void Fly(Vector3 direction)
-	{
-		if(!isEnabled)
-			return;
-		
 		Vector3 force = direction * engineForce;
 		if(currentFuel > 0 && force.magnitude > 0)
 		{
 			//Add force
 			rigidbody.AddForce(force, ForceMode.Force);
-			
-			//remember force direction for rotation effects
-			thrustDirection = direction;
-			
+						
 			//Tilt ship in force direction
-			//float lateralForceComponent = (transform.worldToLocalMatrix * direction).normalized.x;
-			//targetTilt = MAX_TILT_ANGLE * -lateralForceComponent;
 			ConsumeFuel( fuelConsumptionPerSecond * Time.deltaTime );
 			
 			//play effect
 			rocketTrail.Play();
+			
+			//remember force direction for rotation effects
+			SetPivotDirection(direction);
+
 		}
 		else
 		{ 
 			rocketTrail.Stop();
-			//targetTilt = 0;
+			SetPivotDirection(transform.forward); //default to point ship forward
 		}
+		
 	}
 	
 	
@@ -175,6 +139,13 @@ public class Engine : MonoBehaviour {
 	{
 		currentFuel -= amount;
 		Game.gui.shipDisplay.SetFuelDisplay(currentFuel/totalFuel);
+	}
+	
+	void SetPivotDirection(Vector3 newThrustDirection)
+	{
+		newThrustDirection = newThrustDirection.normalized;
+		if( thrustDirection != newThrustDirection )
+			thrustDirection = newThrustDirection;
 	}
 	
 	void CorrectTilt()
