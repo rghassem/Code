@@ -77,6 +77,11 @@ public class Engine : MonoBehaviour {
 		CorrectTilt(); //pull tilt towards normal
 	}
 	
+	void OnDisable()
+	{
+		rocketTrail.Stop();
+		meshTransform.localRotation = Quaternion.identity;
+	}
 	
 	public void Fly(Vector3 direction) //should be called from FixedUpdate
 	{
@@ -107,11 +112,20 @@ public class Engine : MonoBehaviour {
 	
 	public float TurnTowards(Vector3 direction)
 	{
+		//Calculate the angle of rotation this frame
 		Quaternion targetRotation = Quaternion.LookRotation(direction.normalized, transform.up);
-		Quaternion rotationThisFrame = Quaternion.RotateTowards(transform.rotation, targetRotation, Time.fixedDeltaTime*MaxAngularSpeed);
-		float angle; Vector3 axis;
-		rotationThisFrame.ToAngleAxis(out angle, out axis);
-		return Turn (angle/360);
+		float maxAnglularStep = Time.fixedDeltaTime*MaxAngularSpeed;
+		Quaternion rotationThisFrame = Quaternion.RotateTowards(transform.rotation, targetRotation, maxAnglularStep);
+		float angle = Quaternion.Angle(transform.rotation, rotationThisFrame);
+		
+		//Calculate the direction of rotation
+		float sideAngle = Vector3.Angle (transform.right, direction); //direction of rotation
+		float sign = sideAngle > 90 ? -1 : 1;
+		
+		if(Mathf.Approximately(angle, 0))
+			return 0;
+		return Turn(angle/maxAnglularStep * sign); //map the turn to a number between -1 and 1
+			
 	}
 	
 	public float Turn(float axis)

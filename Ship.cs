@@ -109,6 +109,7 @@ public class Ship : SelectableBody
 			engine.enabled = false;
 			asteroidSpawner.Stop();
 			switchMode(ControlMode.Tactical);
+			Game.mainCamera.effects.DeactivateLightSpeed();
 			break;
 			
 		case LaunchState.Launching:
@@ -116,6 +117,7 @@ public class Ship : SelectableBody
 			engine.enabled = false;
 			asteroidSpawner.Stop();
 			switchMode(ControlMode.Flight);
+			Game.mainCamera.effects.DeactivateLightSpeed();
 			break;
 			
 		case LaunchState.Orbit:
@@ -124,6 +126,7 @@ public class Ship : SelectableBody
 			disableGravity();
 			engine.enabled = false;
 			asteroidSpawner.Stop();
+			Game.mainCamera.effects.DeactivateLightSpeed();
 			break;
 			
 		case LaunchState.Transit:
@@ -132,6 +135,9 @@ public class Ship : SelectableBody
 			asteroidSpawner.Go();
 			rigidbody.drag = 0;
 			rigidbody.isKinematic = false;
+			//Activate light speed particle system
+			Game.mainCamera.effects.ActivateLightSpeed();		
+
 			break;
 		}
 		
@@ -160,7 +166,6 @@ public class Ship : SelectableBody
 		mode = newMode;
 	}
 
-	
 	
 	
 	//Public interface
@@ -253,15 +258,12 @@ public class Ship : SelectableBody
 		rigidbody.AddForce(ftlDirection * ftlImpulse, ForceMode.VelocityChange);
 		timeOfLaunch = Time.fixedTime;
 		
-		//Activate light speed particle system
-		Game.mainCamera.effects.ActivateLightSpeed();		
 		
 	}
 	
 	
 	public void LeaveFTL()
 	{
-		Game.mainCamera.effects.DeactivateLightSpeed();
 		switchState(LaunchState.Idle);
 		switchMode(ControlMode.Tactical);
 		StopCoroutine("HandleMouseDragRotation");
@@ -449,10 +451,11 @@ public class Ship : SelectableBody
 			
 			float orientationInputX = Input.GetAxis("RightHorizontal");
 			float orientationInputZ = Input.GetAxis("RightVertical");
-			if(orientationInputX != 0)
-				engine.Turn(orientationInputX);
+			
 			if(orientationInputZ != 0)
-				engine.TurnTowards(rigidbody.velocity.normalized);
+				engine.TurnTowards(rigidbody.velocity.normalized * Mathf.Sign(orientationInputZ));
+			else if(orientationInputX != 0)
+				engine.Turn(orientationInputX);
 		}
 	}
 	
