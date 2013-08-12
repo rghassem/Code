@@ -9,12 +9,14 @@ public class RocketTrail : MonoBehaviour {
 	float defaultFlameEmissionRate;
 	bool locked;
 	
+	public bool isPlaying;
 	// Use this for initialization
 	void Awake () {
 		exhaust = transform.Find("Rocket Smoke Effect").particleSystem;
 		flames = transform.Find("Rocket Fire Effect").particleSystem;
 		defaultFlameEmissionRate = flames.emissionRate;
 		Stop();
+		isPlaying = false;
 	}
 	
 	public void Play()
@@ -24,6 +26,7 @@ public class RocketTrail : MonoBehaviour {
 		
 		flames.Play();
 		exhaust.Play();
+		isPlaying = true;
 	}
 	
 	public void Stop()
@@ -33,7 +36,9 @@ public class RocketTrail : MonoBehaviour {
 		
 		flames.Stop();
 		exhaust.Stop();
+		isPlaying = false;
 	}
+	
 	
 	public void PlayBurst(float duration, int emissionMultiplier)
 	{

@@ -95,7 +95,8 @@ public class Engine : MonoBehaviour {
 			ConsumeFuel( fuelConsumptionPerSecond * Time.deltaTime );
 			
 			//play effect
-			rocketTrail.Play();
+			if(!rocketTrail.isPlaying)
+				rocketTrail.Play();
 			
 			//remember force direction for rotation effects
 			SetPivotDirection(direction);

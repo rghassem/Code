@@ -96,7 +96,9 @@ public class GravityField : MonoBehaviour {
 			gravityStrength = ( 1 / Mathf.Pow(distance, 2) ) * GravitationStrength;
 			pull =  pullDirection * gravityStrength;
 			break;
+			
 		}
+			
 		
 		if(pull.magnitude <= 1)
 			targetInterface.EscapeGravity(gameObject);
