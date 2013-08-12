@@ -29,6 +29,9 @@ public class Landable : MonoBehaviour {
 				transform.parent = land.transform;
 				transform.position = Vector3.zero;
 				gameObject.SetActiveRecursively(false);
+				
+				//Notify Planet that we have landed
+				land.NotifyLanding(this);
 			}
 		}
 		

@@ -115,7 +115,12 @@ public class Planet : SelectableBody {
 	public bool RequestLaunch(Landable landedCraft)
 	{
 		landedCraft.Launch( transform.position + transform.localScale + landedCraft.transform.lossyScale);
-		return true;
+		return true; //TODO: Would we turn down a launch?
+	}
+	
+	public void NotifyLanding(Landable landingObject)
+	{
+		Game.gui.planetMenu.mainColonyPanel.GetComponent<ColonyPanel>().AddShip(landingObject);
 	}
 	
 	/// <summary>

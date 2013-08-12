@@ -14,11 +14,11 @@ public class ShipButton : MonoBehaviour {
 		planet = thePlanet;
 		landedShip = landable;
 	}
-	
+		
 	void OnClick()
 	{
 		planet.RequestLaunch(landedShip);
-		NGUITools.Destroy(gameObject.transform.parent.gameObject); //Ship button UIImageButton shares common parent with its other assets	
+		Game.gui.planetMenu.mainColonyPanel.GetComponent<ColonyPanel>().RemoveShipButton(gameObject.transform.parent.gameObject);
 	}
 	
 }
