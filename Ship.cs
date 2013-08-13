@@ -469,6 +469,7 @@ public class Ship : SelectableBody
 		float launchForce, maxDistance;
 		float ftlDistance, ftlTime, ftlImpulse;
 		Rigidbody launcher;
+		Transform meshTransform;
 		
 		public Launching(Ship self, GameObject launchBase, float launchForce, float maxDistance) : base(self) 
 		{
@@ -476,6 +477,7 @@ public class Ship : SelectableBody
 			this.launchForce = launchForce;
 			this.maxDistance = maxDistance;
 			this.launcher = launchBase.rigidbody;
+			this.meshTransform = transform.FindChild("ShipMesh");
 			
 			//Setup line renderer
 			lineRendererToLauncher = gameObject.GetComponent<LineRenderer>();
@@ -513,6 +515,7 @@ public class Ship : SelectableBody
 		{		
 			lineRendererToLauncher.enabled = false;
 			launcher = null;
+			meshTransform.localScale = Vector3.one;
 		}
 		
 		public override void OnMouseUp() 
@@ -531,6 +534,7 @@ public class Ship : SelectableBody
 			rigidbody.AddForce(forceVector,ForceMode.Force);
 		
 			float percentNearDragLimit =  launchLine.magnitude / self.MaxDragDistance;
+			meshTransform.localScale = new Vector3(meshTransform.localScale.x, meshTransform.localScale.y, 1 + percentNearDragLimit*3);
 			Vector3 dragStopForce = directionToLauncher * forceVector.magnitude * percentNearDragLimit;
 			rigidbody.AddForce(dragStopForce, ForceMode.Force);
 				

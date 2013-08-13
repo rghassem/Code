@@ -8,7 +8,7 @@ public class Game : MonoBehaviour {
 	public static GameObject SelectedObject;
 	public static bool lockSelection;
 	
-	public static readonly float SPEED_OF_LIGHT = 100;
+	public static readonly float SPEED_OF_LIGHT = 200;
 	public static readonly float DOUBLE_CLICK_THRESHHOLD_INTERVAL = 0.25f;
 	
 	//Persistent reference to the point light used to highlight selected objects

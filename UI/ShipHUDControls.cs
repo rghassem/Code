@@ -38,7 +38,7 @@ public class ShipHUDControls : MonoBehaviour {
 			
 			if(timeTillNextRefresh <= 0)
 			{
-				string speed = (ship.GetSpeed() * 0.01f).ToString();
+				string speed = (ship.GetSpeed() / Game.SPEED_OF_LIGHT).ToString();
 				if(speed.Length > 4)
 					speed = speed.Substring(0,4);
 				currentSpeedLabel.text = speed;

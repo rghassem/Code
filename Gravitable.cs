@@ -33,8 +33,6 @@ public class Gravitable : MonoBehaviour {
 	/// </summary>
 	public float forceToWidthRatio;
 	
-
-	
 	//Gravity variabless
 	private Dictionary<GameObject, Vector3> currentGravitySources;
 	private List<VectorLine> gravityLines;
@@ -185,7 +183,10 @@ public class Gravitable : MonoBehaviour {
 	
 	private bool ShowGravityInfo()
 	{
-		return ( Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftShift) );// && state == LaunchState.FTL;
+		return ( 
+			( Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftShift) ) 
+			&& enableGravity 
+		);
 	}
 	
 	/*void OnGUI()
