@@ -6,6 +6,7 @@ using AssemblyCSharp;
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(Engine))]
 [RequireComponent(typeof(ObstacleSpawner))]
+[RequireComponent(typeof(Looter))]
 public class Ship : SelectableBody
 {	
 	#region Member Vars
@@ -13,10 +14,10 @@ public class Ship : SelectableBody
 	readonly float MIN_FTL_SPEED = 5;
 	
 	//Orbit mouse drag variables
-	public float MaxDragDistance;    //Maximum distance draggable from start in launch mode
-	public float MaxAcceleration;    //Maximum acceleration attainable
+	public float MaxDragDistance;      //Maximum distance draggable from start in launch mode
+	public float MaxAcceleration;      //Maximum acceleration attainable
 	public float MaxOrbitAngularSpeed; //Rotational speed in degrees per second
-	public float Responsiveness;	 //Newton s of force applied per meter distant the mouse gets
+	public float Responsiveness;	   //Newton s of force applied per meter distant the mouse gets
 
 	public ShipData shipInfo;
 
@@ -24,6 +25,7 @@ public class Ship : SelectableBody
 	
 	private Engine engine;
 	private ObstacleSpawner asteroidSpawner;
+	private Looter lootCollector;
 
 	bool allowMouseDragMovement;
 	float defaultDrag;
@@ -50,6 +52,8 @@ public class Ship : SelectableBody
 		engine = GetComponent<Engine>() as Engine;
 		engine.enabled = false;
 		asteroidSpawner = GetComponent<ObstacleSpawner>();
+		lootCollector = GetComponent<Looter>();
+		lootCollector.enabled = false;
 		if(gravityComponent != null)
 			gravityComponent.SetActive(false);
 		
@@ -356,6 +360,7 @@ public class Ship : SelectableBody
 		protected ObstacleSpawner asteroidSpawner;
 		float ftlCounterForce, timeOfLaunch;
 		protected Gravitable gravityComponent;
+		protected Looter lootCollector;
 		
 		public Transit( Ship self, float ftlCounterForce = 0, float timeOfLaunch = 0 ) : base(self) 
 		{
@@ -363,12 +368,14 @@ public class Ship : SelectableBody
 			gravityComponent = self.gravityComponent;
 			this.ftlCounterForce = ftlCounterForce;
 			this.timeOfLaunch = timeOfLaunch;
+			this.lootCollector = self.lootCollector;
 		}
 		
 		public override void OnEnter()
 		{
 			enableGravity();
 			engine.enabled = true;
+			lootCollector.enabled = true;
 			asteroidSpawner.Go();
 			rigidbody.drag = 0;
 			//Activate light speed particle system
@@ -381,6 +388,7 @@ public class Ship : SelectableBody
 		{
 			disableGravity();
 			engine.enabled = false;
+			lootCollector.enabled = false;
 			asteroidSpawner.Stop();
 			rigidbody.drag = self.defaultDrag;
 			self.switchMode(Ship.ControlMode.Tactical);

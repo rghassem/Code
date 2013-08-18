@@ -61,13 +61,31 @@ public class Spawner : MonoBehaviour {
 	/// True to spawn objects when spawner is first activated, false to wait for call to Spawner.Go().
 	/// </summary>
 	public bool beginAutomatically;
+	
+	/// <summary>
+	/// If true, the spawner will destroy itself if:
+	/// 1.) It has spawned some objects already.
+	/// 2.) None of those objects remain
+	/// Use to clean up spawners with one time purposes.
+	/// </summary>
+	public bool destroyWhenEmpty = false;
 
 	
 	protected List<GameObject> spawnedObjects; //Contains references to every object spawned by this spawner.
 	protected int targetNumberOfObjects;
 	protected GameObject container;
 	
+	bool isInitialized = false;
+	
 	void Start()
+	{
+		Initialize();
+		if(beginAutomatically)
+			Go();
+
+	}
+	
+	private void Initialize()
 	{
 		if(chanceMoving > 1 || chanceMoving < 0)
 		{
@@ -85,8 +103,7 @@ public class Spawner : MonoBehaviour {
 		
 		spawnedObjects = new List<GameObject>();
 		
-		if(beginAutomatically)
-			Go();
+		isInitialized = true;
 	}
 	
 	/// <summary>
@@ -94,12 +111,49 @@ public class Spawner : MonoBehaviour {
 	/// </summary>
 	public virtual void Go()
 	{
+		if(!isInitialized)
+			Initialize();
+		
 		container = new GameObject(prefabsToSpawn[0].name + "s");
 		container.transform.position = Vector3.zero;
 		while(spawnedObjects.Count < targetNumberOfObjects)
 		{
 			Spawn();
 		}
+		
+		if(destroyWhenEmpty)
+			StartCoroutine(WaitTillEmptyAndCleanUp());
+	}
+	
+	public void SetParmateres(
+		int minimumSpawnDistance,
+		int maximumSpawnDistance,
+		float chanceMoving,
+		float minimumSpeed,
+		float maximumSpeed,
+		int maximumSpawnedObjects,
+		int minimumSpawnedObjects = -1,
+		float minimumScale = 1,
+		float maximumScale = 1
+		)
+	{
+		this.minimumSpawnDistance = minimumSpawnDistance;
+		this.maximumSpawnDistance = maximumSpawnDistance;
+		this.chanceMoving = chanceMoving;
+		this.minimumSpeed = minimumSpeed;
+		this.maximumSpeed = maximumSpeed;
+		this.maximumSpawnedObjects = maximumSpawnedObjects;
+		this.minimumSpawnedObjects = (minimumSpawnedObjects < 0) ? maximumSpawnedObjects : minimumSpawnedObjects;
+		this.minimumScale = minimumScale;
+		this.maximumScale = maximumScale;
+		beginAutomatically = false;
+		
+		Initialize();
+	}
+	
+	public void SetSpawnObjects(params GameObject[] objects)
+	{
+		prefabsToSpawn = objects;
 	}
 	
 	
@@ -138,5 +192,14 @@ public class Spawner : MonoBehaviour {
 		spawnedObjects.Add( spawnedObject );
 	}
 	
+	IEnumerator WaitTillEmptyAndCleanUp()
+	{
+		yield return new WaitForSeconds(5); //just minor cleanup, no hurry
+		
+		if(transform.childCount == 0)
+			Destroy(gameObject);
+	}
+	
+
 
 }

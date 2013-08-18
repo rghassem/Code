@@ -6,6 +6,7 @@ public class Damagable : MonoBehaviour {
 	public float MaxHealth;
 	public float Health;
 	public ParticleSystem DestructionEffect;
+	public GameObject loot;
 	
 	void Start()
 	{
@@ -42,4 +43,5 @@ public class Damagable : MonoBehaviour {
 		}
 		
 	}
+	
 }
