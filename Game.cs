@@ -126,7 +126,7 @@ public class Game : MonoBehaviour {
 		playingField.Raycast(cameraToWorldByScreenPoint, out projectionDistance);
 		
 		Vector3 result = cameraPosition + (directionToWorld * projectionDistance);
-		GameObject.Find("Marker").transform.position = result;
+		//GameObject.Find("Marker").transform.position = result;
 		return result;
 	}
 	

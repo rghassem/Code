@@ -22,13 +22,27 @@ public class StructurePopupPanel : MonoBehaviour {
 		Hide();
 	}
 	
+	void Update()
+	{
+		//Keep the line to the subject up to date
+		if(linkToSubject != null && linkToSubject.active == true && structure != null)
+		{
+			Vector3 targetScreenPosition = Game.mainCamera.camera.WorldToScreenPoint(structure.transform.position);
+			linkToSubject.points2[1] = new Vector2(targetScreenPosition.x, targetScreenPosition.y);
+			linkToSubject.Draw();
+		}
+	}
+	
 	public void Hide()
 	{
 		if(structure != null)
 			structure.NotifyClickAway();
 
 		if(linkToSubject != null)
-			linkToSubject.active = false;
+		{
+			VectorLine.Destroy(ref linkToSubject);
+			linkToSubject = null;
+		}
 		transform.position += new Vector3( Screen.width + 10000, 0, 0);
 	}
 	
@@ -53,14 +67,16 @@ public class StructurePopupPanel : MonoBehaviour {
 		
 		//Draw line
 		Vector3 targetScreenCoords = targetScreenPosition;
-		Vector3 popupScreenPosition = targetScreenPosition + new Vector3(offsetDistance ,0,0); 
+		Vector3 popupScreenPosition = targetScreenPosition + new Vector3(offsetDistance ,0,0);
 		linkToSubject = VectorLine.SetLine(Color.gray, 
 				new Vector2(popupScreenPosition.x, popupScreenPosition.y),
 				new Vector2(targetScreenCoords.x, targetScreenCoords.y));
+
 		
 		Show(popupPosition);
 	}
 	
+
 	Vector3 CalculatePopupPosition(Vector3 targetScreenPosition)
 	{	
 		Vector3 targetSreenCoord = 
