@@ -156,9 +156,10 @@ public class Engine : MonoBehaviour {
 		Game.gui.shipDisplay.SetFuelDisplay(currentFuel/totalFuel);
 	}
 	
-	public void gainFuel(float amount)
+	public void GainFuel(float amount)
 	{
 		currentFuel = Mathf.Min(currentFuel + amount, totalFuel);
+		Game.gui.shipDisplay.SetFuelDisplay(currentFuel/totalFuel);
 	}
 	
 	void SetPivotDirection(Vector3 newThrustDirection)
@@ -184,7 +185,8 @@ public class Engine : MonoBehaviour {
 	
 	public void OnCollectLoot(LootReport newloot)
 	{
-		gainFuel(newloot.fuelQuantity);
+		if(newloot.HasType(Loot.DropType.Fuel))
+			GainFuel(newloot.GetQuantity(Loot.DropType.Fuel));
 	}
 	
 }

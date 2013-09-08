@@ -88,8 +88,7 @@ public class LabelPool : MonoBehaviour {
 	/// Label text is given by lines of text, one line per parameter
 	/// </summary>
 	/// <returns>
-	/// An integer that identifies this label. Can be used to access the label
-	/// via other labelPool functions
+	/// The newly created label
 	/// </returns>
 	public DynamicLabel Label(GameObject anchor, params string[] linesOfText)
 	{
@@ -98,7 +97,7 @@ public class LabelPool : MonoBehaviour {
 	
 	
 	/// <summary>
-	/// Called by DynamicLabel to recylce its
+	/// Recycle a DynamicLabel. If unlabel is true, do not track this anchor any further.
 	/// </summary>
 	public void RecycleLabel(DynamicLabel label, bool unlabel)
 	{

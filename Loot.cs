@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Loot : MonoBehaviour {
 	
@@ -9,6 +10,12 @@ public class Loot : MonoBehaviour {
 		Health
 	}
 	
+	public static readonly Dictionary<DropType, string> dropTypeNames = new Dictionary<DropType, string>()
+    {
+        {DropType.Fuel, "Fuel"},
+        {DropType.Health, "Health"},
+    };
+
 	//TODO: Hold data about loot and maybe set a timer for expiration
 	public float expirationTime;
 	public float value;

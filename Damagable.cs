@@ -7,6 +7,7 @@ public class Damagable : MonoBehaviour {
 	public float Health;
 	public ParticleSystem DestructionEffect;
 	public GameObject loot;
+	public float DestructionEffectScale = 1;
 	
 	void Start()
 	{
@@ -25,6 +26,7 @@ public class Damagable : MonoBehaviour {
 	void Die(DamageType causeOfDeath)
 	{
 		ParticleSystem explosionEffect = Instantiate(DestructionEffect) as ParticleSystem;
+		explosionEffect.transform.localScale = Vector3.one * DestructionEffectScale;
 		explosionEffect.transform.position = transform.position;
 		explosionEffect.loop = false;
 		explosionEffect.Play();

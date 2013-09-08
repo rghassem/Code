@@ -5,6 +5,9 @@ public class DynamicLabel : MonoBehaviour {
 
 
 	private bool _active;
+	/// <summary>
+	/// Gets or sets a value indicating whether this <see cref="DynamicLabel"/> is active. FOR USE ONLY BY LabelPool
+	/// </summary>
 	new public bool active
 	{
 		get {return _active;}
@@ -33,14 +36,14 @@ public class DynamicLabel : MonoBehaviour {
 	public Transform anchor {get; private set;}
 	public Vector2 offset {get; private set;}
 	public string text {get{ return label.text; } private set {} }
-
+	
 	private UILabel label;
 	private VectorLine line;
 	
 	void Awake()
 	{
 		label = gameObject.GetComponent<UILabel>();
-		line = VectorLine.SetLine (Color.gray, Vector2.zero, Vector2.one * 100);
+		line = VectorLine.SetLine (Color.gray, Vector2.zero, Vector2.zero);
 		
 		active = false;
 		label.MakePixelPerfect();
@@ -49,12 +52,14 @@ public class DynamicLabel : MonoBehaviour {
 	void LateUpdate () 
 	{
 		if(anchor == null )
+		{
 			return;
+		}
 		else if(!anchor.renderer.isVisible) //TODO: get visibility better
 		{
 			active = false;
 		}
-		else
+		else if(active)
 		{		
 			Vector3 offset3d = new Vector3(offset.x, offset.y, 0);
 			Vector3 anchorPosition = anchor.transform.position;
@@ -68,6 +73,7 @@ public class DynamicLabel : MonoBehaviour {
 			line.points2 = points;
 			line.Draw();
 		}
+
 	}
 	
 	void OnDestroy()
@@ -104,9 +110,11 @@ public class DynamicLabel : MonoBehaviour {
 	{
 		SetText(linesOfText);
 	}
-	
+
 	private void SetText(params string[] linesOfText)
 	{
+		label.text = "";
+		
 		for(int i = 0; i < linesOfText.Length; i++)
 		{
 			label.text += (i == linesOfText.Length - 1) ? linesOfText[i] : linesOfText[i] + "\n";
