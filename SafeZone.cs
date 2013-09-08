@@ -10,6 +10,7 @@ public class SafeZone : MonoBehaviour {
 	float radius;
 	ILine ring;
 	SelectableBody source;
+	bool isEntered = false;
 	
 	public static SafeZone Spawn(float zoneRadius, GameObject origin)
 	{
@@ -66,12 +67,18 @@ public class SafeZone : MonoBehaviour {
 	
 	public void OnExit()
 	{
+		if(!isEntered) return;
+		isEntered = false;
+		
 		if(source is Planet)
 			Game.gui.planetMenu.Close();
 	}
 	
 	public void OnEnter()
 	{
+		if(isEntered) return;
+		isEntered = true;
+
 		Game.mainCamera.RestoreDefault();
 		
 		if(source is Planet)

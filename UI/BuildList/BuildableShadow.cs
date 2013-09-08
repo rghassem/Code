@@ -11,7 +11,7 @@ public class BuildableShadow : MonoBehaviour {
 	
 	[HideInInspector]
 	public GameObject buildable;
-	public bool canBeBuilt = true;
+	public bool canBeBuilt = false;
 	
 	ResourceDependencyDrawer dependencies;
 	GameObject center;

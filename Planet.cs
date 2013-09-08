@@ -54,7 +54,7 @@ public class Planet : SelectableBody {
 	/// </summary>
 	public IEnumerator RefreshStructuers()
 	{
-		yield return new WaitForSeconds(1); //wait till last minute for parenting process to finish
+		yield return new WaitForEndOfFrame(); //wait till last minute for parenting process to finish
 		builtStructures = new List<Structure>();
 		foreach(Transform child in transform)
 		{

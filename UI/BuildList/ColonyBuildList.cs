@@ -14,8 +14,10 @@ public class ColonyBuildList : MonoBehaviour {
 	/// </summary>
 	public Vector2 collderBoundsSize;
 	
+	public bool surfaceMode = false;
+	
 	UITable structuresTable;
-	int buildingCount;
+	int buildingCount; //Is this needed?
 	//GameObject currentPlanet;
 	HashSet<BuildListItemData> avaiblableStructures;
 		
@@ -37,6 +39,7 @@ public class ColonyBuildList : MonoBehaviour {
 	/// </summary>
 	public void UpdateBuildList(bool surfaceMode)
 	{
+		this.surfaceMode = surfaceMode;
 		avaiblableStructures = new HashSet<BuildListItemData>();
 		foreach(BuildListItemData building in Game.state.possibleBuildings)
 		{
@@ -69,12 +72,6 @@ public class ColonyBuildList : MonoBehaviour {
 	{
 	}*/
 	
-	public void OnChildMoved(GameObject child)
-	{
-		BuildListItemData missingData = child.GetComponent<BuildListItem>().data;
-		if(missingData.buildingType == BuildingType.Surface) //Only surface ListItems are consumed by DropSurfaces
-			RestoreOneItem(missingData);
-	}
 	
 	/// <summary>
 	/// Returns true if the mouse overlaps the build list. Used to determine when a dragdropitem is being returned

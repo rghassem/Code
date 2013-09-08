@@ -72,15 +72,26 @@ public class BuildListItem : MonoBehaviour {
 		//the drag drop surface can pick it up.
 	}
 	
+	//Called when not dropped in a drag drop surface
 	void OnDropFail()
 	{
 		EndDragging();
 	}
 	
+	//Called when dropped in a drag drop surface
 	void OnDropSuccess()
 	{
-		EndDragging();
-		currentPlanet.StartCoroutine("RefreshStructuers");
+		if(isBeingDragged)
+		{
+			EndDragging();
+			
+			//signal the planet that there's been a new structure added. Note that this gets called 
+			//when re-dropping back in the list, which is also a "DropSuccess". In which case it has no
+			//effect but is sort of wasteful...
+			currentPlanet.StartCoroutine("RefreshStructuers"); 
+		}
+		else buildList.UpdateBuildList(buildList.surfaceMode); //still might need to be done. To trigger this case,
+															   //try just clicking on a build item without dragging
 	}
 	
 	void Update()
@@ -92,7 +103,7 @@ public class BuildListItem : MonoBehaviour {
 	}
 	
 	void EndDragging()
-	{
+	{	
 		isBeingDragged = false;
 		Game.mainCamera.lockInput = false;
 		
@@ -103,6 +114,8 @@ public class BuildListItem : MonoBehaviour {
 			Destroy(dropShadow.gameObject);
 		else //turn the shadow into the real object
 			dropShadow.Build();
+		
+		buildList.UpdateBuildList(buildList.surfaceMode);
 	}
 	
 	#endregion
